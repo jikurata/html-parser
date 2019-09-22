@@ -4,7 +4,9 @@
   "description": "Parse html into a pseudo HTMLDocument",
   "main": "index.js",
   "scripts": {
-    "test": "node ./test/html-parser.test.js"
+    "test:document": "node ./test/document.test.js",
+    "test:parser": "node ./test/html-parser.test.js",
+    "test": "npm run test:document && npm run test:parser"
   },
   "keywords": [
     "html",

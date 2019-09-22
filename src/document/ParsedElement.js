@@ -54,6 +54,10 @@ class ParsedElement {
     this.attributes[attr] = value;
   }
 
+  get id() {
+    return this.attributes.id;
+  }
+
   set id(id) {
     this.attributes.id = id;
   }

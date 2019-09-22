@@ -22,10 +22,6 @@ class ParsedHTMLElement extends ParsedElement {
     this.children.unshift(element);
     element.parent = this;
   }
-
-  get id() {
-    return this.attributes.id;
-  }
 }
 
 module.exports = ParsedHTMLElement;
