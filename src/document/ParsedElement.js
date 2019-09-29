@@ -46,6 +46,10 @@ class ParsedElement {
     return list;
   }
 
+  hasAttribute(attr) {
+    return this.attributes.hasOwnProperty(attr);
+  }
+
   getAttribute(attr) {
     return this.attributes[attr];
   }

@@ -1,7 +1,7 @@
 'use strict';
 const Taste = require('@jikurata/taste');
 const HtmlParser = require('../src/HtmlParser.js');
-const ParsedHTMLDocument = require('../src/document/ParsedHTMLDcoument.js');
+const ParsedHTMLDocument = require('../src/document/ParsedHTMLDocument.js');
 const ParsedHTMLElement = require('../src/document/ParsedHTMLElement.js');
 const ParsedElement = require('../src/document/ParsedElement.js');
 
@@ -111,3 +111,30 @@ const ParsedElement = require('../src/document/ParsedElement.js');
   .expect('rootHasUniqueParagraph').toBeTruthy()
   .expect('level1HasLevel2').toBeTruthy();
 
+Taste.flavor('Full document')
+.describe('Parses a full document')
+.test(profile => {
+  const content = `
+    <!DOCTYPE html>
+    <head>
+      <title>test</title>
+    </head>
+    <body>
+      String
+      <p>foobar</p>
+      <div></div>
+    </body>
+  `;
+  const HP = new HtmlParser();
+  const document = HP.parse(content);
+  profile.doctype = document.getElementsByTagName('!DOCTYPE')[0];
+  profile.head = document.getElementsByTagName('head')[0];
+  profile.title = document.getElementsByTagName('title')[0];
+  profile.body = document.getElementsByTagName('body')[0];
+  profile.p = document.getElementsByTagName('p')[0];
+})
+.expect('doctype').toBeTruthy()
+.expect('head').toBeTruthy()
+.expect('title').toBeTruthy()
+.expect('body').toBeTruthy()
+.expect('p').toBeTruthy();

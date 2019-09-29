@@ -1,6 +1,6 @@
 'use strict';
 const Taste = require('@jikurata/taste');
-const ParsedHTMLDocument = require('../src/document/ParsedHTMLDcoument.js');
+const ParsedHTMLDocument = require('../src/document/ParsedHTMLDocument.js');
 const ParsedElement = require('../src/document/ParsedElement.js');
 
 Taste.flavor('Creating ParsedElements')

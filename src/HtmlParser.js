@@ -1,5 +1,5 @@
 'use strict';
-const ParsedHTMLDocument = require('./document/ParsedHTMLDcoument.js');
+const ParsedHTMLDocument = require('./document/ParsedHTMLDocument.js');
 
 class HtmlParser {
   constructor(options = {}) {
@@ -120,7 +120,7 @@ class HtmlParser {
         }
 
         // Push the iterator to the end pos of the tag
-        i = pos[1];
+        i = pos[1] - 1;
       }
       // If no new tag can be found, assume the rest of the content is a string
       else {
