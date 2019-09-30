@@ -1,10 +1,11 @@
 const ParsedElement = require('./ParsedElement.js');
 
 class ParsedHTMLElement extends ParsedElement {
-  constructor(id, options = {}) {
-    super(options);
-    this.referenceId = id;
-    this.content = options.content || '';
+  constructor(id, param = {}) {
+    super(id, param);
+    this.setAll({
+      'tagName': param.tagName || null
+    });
   }
 
   appendChild(element) {

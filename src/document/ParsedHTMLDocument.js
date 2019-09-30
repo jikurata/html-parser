@@ -1,11 +1,11 @@
 'use strict';
 const ParsedElement = require('./ParsedElement.js');
 const ParsedHTMLElement = require('./ParsedHTMLElement.js');
+const ParsedTextElement = require('./ParsedTextElement.js');
 
 class ParsedHTMLDocument extends ParsedElement {
   constructor() {
-    super({
-      tagName: '#document',
+    super(0, {
       nodeType: 'document'
     });
   }
@@ -21,7 +21,7 @@ class ParsedHTMLDocument extends ParsedElement {
    *  attributes: {Object},
    *  content: {String},
    *  parent: {ParsedElement},
-   *  children: {ParsedElement},
+   *  children: {Array[ParsedElement]},
    *  source: {Object}
    *  childrenRefIds: {Array[Number]}
    *  parentRefId: {Number}
@@ -39,19 +39,9 @@ class ParsedHTMLDocument extends ParsedElement {
       content: options.content || '',
       parent: options.parent || null,
       children: options.children || [],
-      source: options.source || null
+      source: options.source || {}
     };
 
-    if ( !options.children && options.childrenRefIds ) {
-      for ( let i = 0; i < options.childrenRefIds.length; ++i ) {
-        const id = options.childrenRefIds[i];
-        const e = this.getElementByReferenceId(id);
-        o.children.push(e);
-      }
-    }
-    if ( !options.parent && options.parentRefId ) {
-      o.parent = this.getElementByReferenceId(options.parentRefId);
-    }
     if ( !o.nodeType ) {
       // Determine the node type based on tag name
     }
@@ -61,11 +51,29 @@ class ParsedHTMLDocument extends ParsedElement {
     return e;
   }
 
-  getElementByReferenceId(id) {
-    if ( typeof id === 'number' && id > -1 ) {
-      return this.children[id];
+  /**
+   * Creates a nodeType text element
+   * @param {String} text 
+   * @param {Object} options
+   * @returns {ParsedTextElement}
+   */
+  createTextElement(options) {
+    if ( typeof options === 'string' ) {
+      options = { textContent: options };
     }
-    return null;
+    else if ( !options || typeof options !== 'object' ) {
+      options = {};
+    }
+    const o = {
+      nodeType: 'text',
+      textContent: options.textContent || '',
+      parent: options.parent || null,
+      source: options.source || {}
+    };
+    
+    const e = new ParsedTextElement(this.children.length, o);
+    this.children.push(e);
+    return e;
   }
 }
 

@@ -87,8 +87,8 @@ const ParsedElement = require('../src/document/ParsedElement.js');
     profile.void = document.getElementById('void');
     profile.voidWithClosed = document.getElementById('voidWithClosed');
   })
-  .expect('void').toBeTruthy()
-  .expect('voidWithClosed').toBeTruthy();
+  .expect('void').isInstanceOf(ParsedElement)
+  .expect('voidWithClosed').isInstanceOf(ParsedElement);
 
   Taste.flavor('Nested Elements')
   .describe('Account for nested elements')
@@ -105,11 +105,11 @@ const ParsedElement = require('../src/document/ParsedElement.js');
     `;
     const HP = new HtmlParser();
     const document = HP.parse(content);
-    profile.rootHasUniqueParagraph = document.getElementById('root').getElementById('uniqueParagraph');
-    profile.level1HasLevel2 = document.getElementById('level1').getElementById('level2');
+    profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
+    profile.level1HasLevel2 = document.getElementById('level2');
   })
-  .expect('rootHasUniqueParagraph').toBeTruthy()
-  .expect('level1HasLevel2').toBeTruthy();
+  .expect('rootHasUniqueParagraph').isInstanceOf(ParsedElement)
+  .expect('level1HasLevel2').isInstanceOf(ParsedElement);
 
 Taste.flavor('Full document')
 .describe('Parses a full document')
@@ -127,14 +127,14 @@ Taste.flavor('Full document')
   `;
   const HP = new HtmlParser();
   const document = HP.parse(content);
-  profile.doctype = document.getElementsByTagName('!DOCTYPE')[0];
-  profile.head = document.getElementsByTagName('head')[0];
-  profile.title = document.getElementsByTagName('title')[0];
-  profile.body = document.getElementsByTagName('body')[0];
-  profile.p = document.getElementsByTagName('p')[0];
+  profile.doctype = document.getElementsByTagName('!DOCTYPE').length;
+  profile.head = document.getElementsByTagName('head').length;
+  profile.title = document.getElementsByTagName('title').length;
+  profile.body = document.getElementsByTagName('body').length;
+  profile.p = document.getElementsByTagName('p').length;
 })
-.expect('doctype').toBeTruthy()
-.expect('head').toBeTruthy()
-.expect('title').toBeTruthy()
-.expect('body').toBeTruthy()
-.expect('p').toBeTruthy();
+.expect('doctype').toEqual(1)
+.expect('head').toEqual(1)
+.expect('title').toEqual(1)
+.expect('body').toEqual(1)
+.expect('p').toEqual(1);

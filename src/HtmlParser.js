@@ -45,8 +45,8 @@ class HtmlParser {
   parse(content) {
     const length = content.length;
     const document = new ParsedHTMLDocument();
-    const idStack = [];
-    let currentRefId = null;
+    const stack = [];
+    let currentElement = null;
 
     let i = 0;
     while ( i < length ) {
@@ -55,83 +55,74 @@ class HtmlParser {
         // Check if there are characters between the i position and start position
         if ( i !== pos[0] ) {
           // Create a string element representing the untagged characters
-          const element = document.createElement({
-            'tagName': '#text',
-            'nodeType': 'text',
-            'content': content.substring(i, pos[0]),
-            'parentRefId': currentRefId,
+          const element = document.createTextElement({
+            'textContent': content.substring(i, pos[0]),
+            'parent': currentElement,
             'source': {
               'content': content,
-              'length': length,
               'startIndex': i,
               'endIndex': pos[0]
             }
           });
 
-          i = pos[0];
+          i = pos[0] - 1;
         }
         const tagString = content.substring(pos[0], pos[1]);
         const tagInfo = this.parseTagAttributes(tagString);
         if ( tagInfo.mode === 'closed' ) {
-          if ( typeof currentRefId !== 'number' || currentRefId < 0 ) {
+          if ( !currentElement ) {
             throw new Error(`No open tag to match with ${tagInfo.tagName}`);
           }
-          const elementFromStack = document.getElementByReferenceId(currentRefId);
-          elementFromStack.source.endIndex = pos[1];
+          
+          currentElement.source.endIndex = pos[1];
 
           // Throw if the closing tag does not match the last opened tag
-          if ( tagInfo.tagName !== elementFromStack.tagName ) {
-            throw new Error(`Mismatching tag pair. Expected ${elementFromStack.tagName} but received ${tagInfo.tagName}`);
+          if ( tagInfo.tagName !== currentElement.tagName ) {
+            throw new Error(`Mismatching tag pair. Expected ${currentElement.tagName} but received ${tagInfo.tagName}`);
           }
           
           // append the resulting content
-          elementFromStack.content = content.substring(elementFromStack.source.startIndex, elementFromStack.source.endIndex);
+          currentElement.content = content.substring(currentElement.source.startIndex, currentElement.source.endIndex);
           
           // Set the current scope to the next id in the stack
-          const nextId = idStack.pop();
-          currentRefId = (typeof nextId === 'number') ? nextId : null;
+          currentElement = stack.pop() || null;
         }
         else {
           const element = document.createElement({
             'tagName': tagInfo.tagName, 
             'nodeType': 'element',
             'attributes': tagInfo.attributes,
-            'parentRefId': currentRefId,
+            'parent': currentElement,
             'source': {
               'content': content,
-              'length': length,
               'startIndex': pos[0]
             }
           });
 
-          // if currentRefId, add the new element as a child
-          if ( typeof currentRefId === 'number' && currentRefId > -1 ) {
-            const parent = document.getElementByReferenceId(currentRefId);
-            parent.appendChild(element);
+          // if currentElement, add the new element as a child
+          if ( currentElement ) {
+            currentElement.appendChild(element);
           }
           if ( tagInfo.mode === 'open' ) {
             // Push the current scope into the stack
-            if ( typeof currentRefId === 'number' && currentRefId > -1 ) {
-              idStack.push(currentRefId);
+            if ( currentElement ) {
+              stack.push(currentElement);
             }
             // Set the current scope to the new open tag
-            currentRefId = element.referenceId;
+            currentElement = element;
           }
         }
 
         // Push the iterator to the end pos of the tag
         i = pos[1] - 1;
       }
-      // If no new tag can be found, assume the rest of the content is a string
       else {
-        const element = document.createElement({
-          'tagName': '#text',
-          'nodeType': 'text',
-          'content': content.substring(i, length),
-          'parentRefId': currentRefId,
+        // If no new tag can be found, assume the rest of the content is a string
+        const element = document.createTextElement({
+          'textContent': content.substring(i, length),
+          'parent': currentElement,
           'source': {
             'content': content,
-            'length': length,
             'startIndex': i,
             'endIndex': length
           }
@@ -249,6 +240,14 @@ class HtmlParser {
     }
 
     return obj;
+  }
+
+  outerContent() {
+
+  }
+
+  innerContent() {
+
   }
 }
 

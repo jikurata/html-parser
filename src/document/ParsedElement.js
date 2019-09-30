@@ -1,19 +1,85 @@
 'use strict';
+const EventEmitter = require('events');
 
-class ParsedElement {
-  constructor(options) {
-    this.tagName = options.tagName || null;
-    this.nodeType = options.nodeType || 'element';
-    this.attributes = options.attributes || {};
-    this.children = options.children || [];
-    this.parent = options.parent || null;
-    this.source = options.source || null;
+class ParsedElement extends EventEmitter {
+  constructor(id, param = {}) {
+    super();
+    Object.defineProperty(this, 'referenceId', {
+      value: id,
+      enumerable: true,
+      writable: false,
+      configurable: false
+    });
+    Object.defineProperty(this, 'map', {
+      value: {},
+      enumerale: false,
+      writable: false,
+      configurable: false
+    });
+    this.setAll({
+      'nodeType': param.nodeType || 'element',
+      'attributes': param.attributes || {},
+      'parent': param.parent || null,
+      'children': param.children || [],
+      'source': param.source || {}
+    }, false);
+
+    this.on('change', (field, value, oldValue) => {
+      // Do update stuff on element
+    });
+
+    // propagate a change event upwards
+    this.on('update', () => {
+      if ( this.parent ) {
+        this.parent.emit('propagate-change', this.referenceId)
+      }
+    })
+  }
+
+  /**
+   * Add a field to the ParsedElement instance
+   * @param {String} field 
+   * @param {*} value 
+   */
+  set(field, value, emit = true) {
+    if ( !this.hasOwnProperty(field) ) {
+      Object.defineProperty(this, field, {
+        enumerable: true,
+        get: () => {
+          return this.map[field];
+        },
+        set: (v) => {
+          this.set(field, v);
+        }
+      });
+    }
+    if ( value !== this.map[field] ) {
+      const oldValue = this.map[field]
+      this.map[field] = value;
+      // Do update stuff on the element
+      if ( emit ) {
+        this.emit('change', field, value, oldValue);
+      }
+    }
+  }
+
+  /**
+   * Add key-value pairs from an object to the ParsedElement instance
+   * @param {Object} o 
+   */
+  setAll(o = {}, emit = true) {
+    const keys = Object.keys(o);
+    for ( let i = 0; i < keys.length; ++i ) {
+      const key = keys[i];
+      this.set(key, o[key], emit);
+    }
   }
 
   getElementById(id) {
     for ( let i = 0; i < this.children.length; ++i ) {
       const e = this.children[i];
-      if ( e.attributes.id && e.attributes.id === id ) {
+      const attributeId = e.getAttribute('id');
+      if ( attributeId === id ) {
         return e;
       }
     }
@@ -54,24 +120,30 @@ class ParsedElement {
     return this.attributes[attr];
   }
 
-  setAttribute(attr, value) {
-    this.attributes[attr] = value;
+  setAttribute(attr, value, emit = true) {
+    if ( this.attributes[attr] !== value ) {
+      const oldValue = this.attributes[attr];
+      this.attributes[attr] = value;
+      if ( emit ) {
+        this.emit('change', attr, value, oldValue);
+      }
+    }
   }
 
   get id() {
-    return this.attributes.id;
+    return this.getAttribute('id');
   }
 
   set id(id) {
-    this.attributes.id = id;
+    this.setAttribute('id', id);
   }
 
   get className() {
-    return this.attributes.class;
+    return this.getAttribute('class');
   }
 
   set className(className) {
-    this.attributes.class = className;
+    this.setAttribute('class', className);
   }
 }
 

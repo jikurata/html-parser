@@ -1,4 +1,4 @@
-# html-parser v0.0.0
+# html-parser v0.0.1
 Synchronously parse html into a pseudo document object
 ---
 ## Install
@@ -37,6 +37,9 @@ const doc = parser.parse(html); // Returns a ParsedHTMLDocument object
 ```
 ## Version Log
 ---
+**v0.0.1**
+- Fixed a bug that caused the parser to miss an element's closing tag when the element has no content
+
 **v0.0.0**
 - Plans:
     - Expand upon available methods for ParsedElement and its derivatives
