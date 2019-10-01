@@ -1,18 +1,17 @@
 'use strict';
 const Taste = require('@jikurata/taste');
-const HtmlParser = require('../src/HtmlParser.js');
-const ParsedHTMLDocument = require('../src/document/ParsedHTMLDocument.js');
-const ParsedHTMLElement = require('../src/document/ParsedHTMLElement.js');
-const ParsedElement = require('../src/document/ParsedElement.js');
+const htmlParser = require('../src/HtmlParser.js');
+const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
+const ParsedClosedElement = require('../src/element/ParsedClosedElement.js');
+const ParsedElement = require('../src/element/ParsedElement.js');
 
 // Html Parsing Tests
   Taste.flavor('Retrieving tag position')
   .describe('Finds the start and end index of the next html tag, using String.substring rules for indexes')
   .test(profile => {
-    const HP = new HtmlParser();
     const content = `<div>This is a test</div>`;
-    const tag1 = HP.findTagPosition(content);
-    const tag2 = HP.findTagPosition(content, tag1[1]);
+    const tag1 = htmlParser.findTagPosition(content);
+    const tag2 = htmlParser.findTagPosition(content, tag1[1]);
     profile.tag1Start = tag1[0];
     profile.tag1End = tag1[1];
     profile.tag2Start = tag2[0];
@@ -26,9 +25,8 @@ const ParsedElement = require('../src/document/ParsedElement.js');
   Taste.flavor('Parsing html tags')
   .describe('Returns attributes, mode and tag name')
   .test(profile => {
-    const HP = new HtmlParser();
     const content = `<div id="test" class="some class" data-foo="bar" hidden>`;
-    const tag = HP.parseTagAttributes(content);
+    const tag = htmlParser.parseTagAttributes(content);
     profile.tagName = tag.tagName;
     profile.id = tag.attributes.id;
     profile.class= tag.attributes.class;
@@ -44,22 +42,20 @@ const ParsedElement = require('../src/document/ParsedElement.js');
   Taste.flavor('Parsing a ParsedHTMLDocument')
   .describe('Converts a string into a ParsedHTMLDocument')
   .test(profile => {
-    const HP = new HtmlParser();
     const content = `
     <div></div>
     `;
-    profile.document = HP.parse(content);
+    profile.document = htmlParser.parse(content);
   })
   .expect('document').isInstanceOf(ParsedHTMLDocument);
 
   Taste.flavor('Parsing ParsedElements')
   .describe('Parses a string into ParsedElements')
   .test(profile => {
-    const HP = new HtmlParser();
     const content = `
     <div id="test" class="some class"data-foo="bar" data-bar="baz">foobar</div>
     `;
-    const document = HP.parse(content);
+    const document = htmlParser.parse(content);
     const element = document.getElementsByTagName('div')[0];
     profile.element = element
     profile.id = element.id;
@@ -68,7 +64,7 @@ const ParsedElement = require('../src/document/ParsedElement.js');
     profile.dataBar = element.getAttribute('data-bar');
   })
   .expect('element').isInstanceOf(ParsedElement)
-  .expect('element').isInstanceOf(ParsedHTMLElement)
+  .expect('element').isInstanceOf(ParsedClosedElement)
   .expect('id').toEqual('test')
   .expect('className').toEqual('some class')
   .expect('dataFoo').toEqual('bar')
@@ -82,8 +78,7 @@ const ParsedElement = require('../src/document/ParsedElement.js');
       <input id="void" value="this is a void tag">
       <img id="voidWithClosed" src="" />
     `;
-    const HP = new HtmlParser();
-    const document = HP.parse(content);
+    const document = htmlParser.parse(content);
     profile.void = document.getElementById('void');
     profile.voidWithClosed = document.getElementById('voidWithClosed');
   })
@@ -103,8 +98,7 @@ const ParsedElement = require('../src/document/ParsedElement.js');
         </div>
       </section>
     `;
-    const HP = new HtmlParser();
-    const document = HP.parse(content);
+    const document = htmlParser.parse(content);
     profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
     profile.level1HasLevel2 = document.getElementById('level2');
   })
@@ -125,8 +119,7 @@ Taste.flavor('Full document')
       <div></div>
     </body>
   `;
-  const HP = new HtmlParser();
-  const document = HP.parse(content);
+  const document = htmlParser.parse(content);
   profile.doctype = document.getElementsByTagName('!DOCTYPE').length;
   profile.head = document.getElementsByTagName('head').length;
   profile.title = document.getElementsByTagName('title').length;
