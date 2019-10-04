@@ -1,14 +1,18 @@
 'use strict';
 const ParsedElement = require('./element/ParsedElement.js');
 const ParsedHTMLElement = require('./element/ParsedHTMLElement.js');
-const ParsedClosedElement = require('./element/ParsedClosedElement.js');
-const ParsedVoidElement = require('./element/ParsedVoidElement.js');
-const ParsedTextElement = require('./element/ParsedTextElement.js');
+const ParsedFragmentElement = require('./element/ParsedFragmentElement.js');
 
 class ParsedHTMLDocument extends ParsedElement {
-  constructor() {
+  constructor(options = {}) {
     super('document', {
       nodeType: 'document'
+    });
+    Object.defineProperty(this, 'fragment', {
+      value: new ParsedFragmentElement(this, this.getNextId()),
+      enumerable: true,
+      writable: false,
+      configurable: false
     });
     Object.defineProperty(this, 'voidTags', {
       value: [
@@ -32,16 +36,8 @@ class ParsedHTMLDocument extends ParsedElement {
       writable: false,
       configurable: false
     });
-    Object.defineProperty(this, 'fragment', {
-      value: new ParsedClosedElement(this, this.getNextId(), {
-        'tagName': 'fragment'
-      }),
-      enumerable: true,
-      writable: false,
-      configurable: false
-    });
-    this.fragment.on('update', () => {
-    });
+    this.trimWhitespace = false;
+    this.config(options);
   }
 
   /**
@@ -56,6 +52,9 @@ class ParsedHTMLDocument extends ParsedElement {
           this.voidTags.push(tag);
         }
       }
+    }
+    if ( options.hasOwnProperty('trimWhitespace') ) {
+      this.trimWhitespace = options.trimWhitespace
     }
   }
 
@@ -82,37 +81,25 @@ class ParsedHTMLDocument extends ParsedElement {
       options = { 'tagName': options }
     }
     const o = {
+      tagName: options.tagName || '',
+      mode: options.mode || 'closed',
       nodeType: options.type || null,
       attributes: options.attributes || {},
+      content: options.content || '',
       parent: options.parent || null,
-      children: options.children || [],
-      mode: options.mode || 'closed'
+      children: options.children || []
     };
 
-    if ( options.tagName ) {
-      o.tagName = options.tagName;
-      if ( this.voidTags.indexOf(o.tagName) > -1 ) {
-        options.mode = 'void';
-      }
+
+    // Check if the element is a void element
+    if ( this.voidTags.indexOf(o.tagName) > -1 ) {
+      options.mode = 'void';
     }
     if ( !o.nodeType ) {
       // Determine the node type based on tag name
     }
-    if ( options.textContent ) {
-      o.textContent = options.textContent;
-    }
 
-    let e = null;
-    if ( options.mode === 'text' ) {
-      e = new ParsedTextElement(this, this.getNextId(), o);
-    }
-    else if ( options.mode === 'void' ) {
-      e = new ParsedVoidElement(this, this.getNextId(), o)
-    }
-    else {
-      e = new ParsedClosedElement(this, this.getNextId(), o);
-    }
-
+    const e = new ParsedHTMLElement(this, this.getNextId(), o);
     this.children.push(e);
     return e;
   }
@@ -125,16 +112,16 @@ class ParsedHTMLDocument extends ParsedElement {
    */
   createTextElement(options) {
     if ( typeof options === 'string' ) {
-      options = { textContent: options };
+      options = { content: options };
     }
     else if ( !options || typeof options !== 'object' ) {
       options = {};
     }
     const o = {
       nodeType: 'text',
-      textContent: options.textContent || '',
-      parent: options.parent || null,
-      mode: 'text'
+      mode: 'text',
+      content: options.content || '',
+      parent: options.parent || null
     };
     return this.createElement(o);
   }
@@ -144,13 +131,66 @@ class ParsedHTMLDocument extends ParsedElement {
   }
 
   stringify() {
-    // Convert each element into a string
-    let content = '';
-    for ( let i = 0; i < this.fragment.children.length; ++i ) {
-      const child = this.fragment.children[i];
-      content += child.stringify();
+    return this.fragment.stringify();
+  }
+
+  /**
+   * Removes any matching elements from the document does not delete
+   * from the document's cache
+   * @param {ParsedElement|Array[ParsedElement]} children 
+   */
+  removeChildren(elements) {
+    if ( elements instanceof ParsedElement ) {
+      elements = [elements];
     }
-    return content;
+    if ( Array.isArray(elements) ) {
+      const ids = [];
+      for ( let i = 0; i < elements.length; ++i ) {
+        ids.push(elements[i].referenceId);
+      }
+
+      const descendants = this.fragment.getDescendants();
+      for ( let j = 0; j < descendants.length; ++j ) {
+        const descendant = descendants[j];
+
+        // remove the descendant if it has a match
+        if ( ids.indexOf(descendant.referenceId) > -1 ) {
+          descendant.remove();
+        }
+      }
+    }
+  }
+
+  /**
+   * Deletes elements from the document's cache
+   * If an element is in the document, it is removed from there as well.
+   * @param {ParsedElement|Array[ParsedElement]} element 
+   */
+  deleteElement(elements) {
+    if ( elements instanceof ParsedElement ) {
+      elements = [elements];
+    }
+    if ( Array.isArray(elements) ) {
+      const list = [];
+      const ids = [];
+
+      // Remove references to all the elements in the document
+      this.removeChildren(elements);
+
+      for ( let i = 0; i < elements.length; ++i ) {
+        ids.push(elements[i].referenceId);
+      }
+
+      for ( let i = 0; i < this.children.length; ++i ) {
+        const child = this.children[i];
+        // Save the element if it is not in the array of ids
+        if ( ids.indexOf(child.referenceId) === -1 ) {
+          list.push(child);
+        }
+      }
+
+      this.children = list;
+    }
   }
 
   /**
@@ -172,7 +212,7 @@ class ParsedHTMLDocument extends ParsedElement {
         if ( i !== pos[0] ) {
           // Create a string element representing the untagged characters
           const element = document.createTextElement({
-            'textContent': content.substring(i, pos[0]),
+            'content': content.substring(i, pos[0]),
             'parent': currentElement
           });
   
@@ -183,22 +223,18 @@ class ParsedHTMLDocument extends ParsedElement {
   
           i = pos[0] - 1;
         }
-        const tagString = content.substring(pos[0], pos[1]);
-        const tagInfo = this.parseTagAttributes(tagString);
+
+        const tagInfo = this.parseTagAttributes(content.substring(pos[0], pos[1]));
         if ( tagInfo.mode === 'closed' ) {
           if ( !currentElement ) {
             throw new Error(`No open tag to match with ${tagInfo.tagName}`);
           }
-          
-          //currentElement.source.endIndex = pos[1];
+        
   
           // Throw if the closing tag does not match the last opened tag
           if ( tagInfo.tagName !== currentElement.tagName ) {
             throw new Error(`Mismatching tag pair. Expected ${currentElement.tagName} but received ${tagInfo.tagName}`);
           }
-          
-          // append the resulting content
-          // currentElement.content = content.substring(currentElement.source.startIndex, currentElement.source.endIndex);
           
           // Set the current scope to the next id in the stack
           currentElement = stack.pop() || null;
@@ -232,7 +268,7 @@ class ParsedHTMLDocument extends ParsedElement {
       else {
         // If no new tag can be found, assume the rest of the content is a string
         const element = document.createTextElement({
-          'textContent': content.substring(i, length),
+          'content': content.substring(i, length),
           'parent': currentElement
         });
   

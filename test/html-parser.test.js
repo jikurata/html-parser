@@ -2,7 +2,6 @@
 const Taste = require('@jikurata/taste');
 const htmlParser = require('../src/HtmlParser.js');
 const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
-const ParsedClosedElement = require('../src/element/ParsedClosedElement.js');
 const ParsedElement = require('../src/element/ParsedElement.js');
 
 // Html Parsing Tests
@@ -45,7 +44,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
     const content = `
     <div></div>
     `;
-    profile.document = htmlParser.parse(content);
+    profile.document = htmlParser(content);
   })
   .expect('document').isInstanceOf(ParsedHTMLDocument);
 
@@ -55,7 +54,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
     const content = `
     <div id="test" class="some class"data-foo="bar" data-bar="baz">foobar</div>
     `;
-    const document = htmlParser.parse(content);
+    const document = htmlParser(content);
     const element = document.getElementsByTagName('div')[0];
     profile.element = element
     profile.id = element.id;
@@ -64,7 +63,6 @@ const ParsedElement = require('../src/element/ParsedElement.js');
     profile.dataBar = element.getAttribute('data-bar');
   })
   .expect('element').isInstanceOf(ParsedElement)
-  .expect('element').isInstanceOf(ParsedClosedElement)
   .expect('id').toEqual('test')
   .expect('className').toEqual('some class')
   .expect('dataFoo').toEqual('bar')
@@ -78,7 +76,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
       <input id="void" value="this is a void tag">
       <img id="voidWithClosed" src="" />
     `;
-    const document = htmlParser.parse(content);
+    const document = htmlParser(content);
     profile.void = document.getElementById('void');
     profile.voidWithClosed = document.getElementById('voidWithClosed');
   })
@@ -98,7 +96,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
         </div>
       </section>
     `;
-    const document = htmlParser.parse(content);
+    const document = htmlParser(content);
     profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
     profile.level1HasLevel2 = document.getElementById('level2');
   })
@@ -119,7 +117,7 @@ Taste.flavor('Full document')
       <div></div>
     </body>
   `;
-  const document = htmlParser.parse(content);
+  const document = htmlParser(content);
   profile.doctype = document.getElementsByTagName('!DOCTYPE').length;
   profile.head = document.getElementsByTagName('head').length;
   profile.title = document.getElementsByTagName('title').length;
@@ -131,3 +129,26 @@ Taste.flavor('Full document')
 .expect('title').toEqual(1)
 .expect('body').toEqual(1)
 .expect('p').toEqual(1);
+
+Taste.flavor('Modify and Stringify a document')
+.describe('Change the contents of a document and convert it back to a string')
+.test(profile => {
+  const html = `
+  <section id="sampleDoc">
+      <header class="text">This is a sample</header>
+      <div>
+          <p>With a nested Element</p>
+          And text node support
+          <div>Another div</div>
+      </div>
+  </section>`;
+  const doc = htmlParser(html); 
+  const sectionElement = doc.getElementById('sampleDoc')
+  const header = sectionElement.getElementsByClassName('text')[0]
+
+  sectionElement.setAttribute('data-attr', 'foo');
+  header.innerHTML += ' and a header too';
+
+  profile.modifiedHeader = header.stringify();
+})
+.expect('modifiedHeader').toMatch(`<header class="text">This is a sample and a header too</header>`);

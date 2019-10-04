@@ -1,7 +1,7 @@
 'use strict';
-const EventEmitter = require('events');
+const EmittableMap = require('../EmittableMap.js');
 
-class ParsedElement extends EventEmitter {
+class ParsedElement extends EmittableMap {
   constructor(id, param = {}) {
     super();
     Object.defineProperty(this, 'referenceId', {
@@ -10,46 +10,29 @@ class ParsedElement extends EventEmitter {
       writable: false,
       configurable: false
     });
-    Object.defineProperty(this, 'map', {
-      value: {},
-      enumerale: true,
-      writable: false,
-      configurable: false
-    });
+
     this.setAll({
       'nodeType': param.nodeType || 'element',
       'attributes': param.attributes || {},
+      'content': param.content || '',
       'parent': param.parent || null,
       'children': param.children || []
     }, false);
+    this.setAll(param, false);
 
-    this.on('change', (field, value, oldValue) => {
-      // Do update stuff on element
-      if ( field === 'parent' ) {
-        this.parent.emit('propagate-update', this.referenceeId);
-      }
-      else {
-        this.update();
-      }
+
+    // Emit update event when the element's model mutates
+    this.on('change', (property, value, oldValue) => {
+      this.emit('propagate-update', this.referenceId);
     });
 
-    // propagate a change event upwards
-    this.on('update', () => {
-      if ( this.parent ) {
-        this.parent.emit('propagate-update', this.referenceId)
-      }
-    });
-
-    // Update the element when receiving an update from a child
+    // Pass an update event to a parent element
     this.on('propagate-update', (referenceId) => {
-      this.update();
+      this.set('content', this.stringify(), false);
+      if ( this.parent ) {
+        this.parent.emit('propagate-update', referenceId)
+      }
     });
-  }
-
-  update(emit = true) {
-    if ( emit ) {
-      this.emit('update');
-    }
   }
 
   getElementById(id) {
@@ -108,6 +91,15 @@ class ParsedElement extends EventEmitter {
   }
 
   /**
+   * Remove this element from the document
+   */
+  remove() {
+    if ( this.parent ) {
+      this.parent.removeChildren([this]);
+    }
+  }
+
+  /**
    * Removes any matching elements from children
    * @param {ParsedElement|Array[ParsedElement]} children 
    */
@@ -154,16 +146,14 @@ class ParsedElement extends EventEmitter {
       list.push(child);
       if ( child.children.length ) {
         const a = child.getDescendants();
-        for ( let j = 0; j < a.length; ++j ) {
-          list.push(a);
-        }
+        list.push(...a);
       }
     }
     return list;
   }
 
   stringify() {
-    return '';
+    return this.content || '';
   }
 
   get id() {
@@ -180,48 +170,6 @@ class ParsedElement extends EventEmitter {
 
   set className(className) {
     this.setAttribute('class', className);
-  }
-
-  /**
-   * Add a field to the ParsedElement instance
-   * @param {String} field 
-   * @param {*} value 
-   */
-  set(field, value, emit = true) {
-    if ( !this.hasOwnProperty(field) ) {
-      Object.defineProperty(this, field, {
-        enumerable: true,
-        get: () => {
-          return this.map[field];
-        },
-        set: (v) => {
-          this.set(field, v);
-        }
-      });
-    }
-    if ( value !== this.map[field] ) {
-      const oldValue = this.map[field]
-      this.map[field] = value;
-      // Do update stuff on the element
-      if ( emit ) {
-        this.emit('change', field, value, oldValue);
-      }
-    }
-  }
-
-  /**
-   * Add key-value pairs from an object to the ParsedElement instance
-   * @param {Object} o 
-   */
-  setAll(o = {}, emit = true) {
-    const keys = Object.keys(o);
-    for ( let i = 0; i < keys.length; ++i ) {
-      const key = keys[i];
-      this.set(key, o[key], false);
-    }
-    if ( emit ) {
-      this.emit('change', o);
-    }
   }
 }
 
