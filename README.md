@@ -19,7 +19,6 @@ const html = `
             And text node support
             <div>Another div</div>
         </div>
-        
     </section>
 `;
 
@@ -46,8 +45,6 @@ Modify the ParsedHTMLDocument or any of its ParsedElements with familiar methods
     // <section id="sampleDoc" data-attr="foo">
     //    <header class="text">This is a sample and a header too</header>
     // </section>
-`
-
 ```
 ## Documentation
 ---

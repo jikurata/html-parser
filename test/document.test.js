@@ -39,14 +39,26 @@ Taste.flavor('Update event propagation')
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('div');
   doc.fragment.appendChild(element);
-  doc.fragment.on('update', () => {
+  doc.fragment.on('propagate-update', () => {
     profile.eventPropagation = true;
   });
-  element.emit('update');
+  element.emit('propagate-update');
 })
 .expect('eventPropagation').toBeTruthy();
 
-Taste.flavor('Stringify ParsedClosedElement with innerHTML')
+Taste.flavor('Stringify ParsedElement')
+.describe('Converts a ParsedElement into a string')
+.test(profile => {
+  const doc = new ParsedHTMLDocument();
+  const element = doc.createElement('input');
+  doc.fragment.appendChild(element);
+  element.setAttribute('type', 'text');
+  profile.elementAsString = element.stringify();
+})
+.expect('elementAsString').toMatch('<input type="text" />')
+
+
+Taste.flavor('Stringify ParsedElement with innerHTML')
 .describe('Converts a ParsedElement to a string')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
@@ -57,18 +69,18 @@ Taste.flavor('Stringify ParsedClosedElement with innerHTML')
 })
 .expect('elementAsString').toMatch('<p>test</p>');
 
-Taste.flavor('Stringify ParsedClosedElement with outerHTML')
+Taste.flavor('Stringify ParsedElement with outerHTML')
 .describe('Converts a ParsedElement to a string')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('p');
   doc.fragment.appendChild(element);
   element.outerHTML = '<div id="foo">hi</div>';
-  profile.elementAsString = element.stringify();
+  profile.elementAsString = doc.stringify();
 })
 .expect('elementAsString').toMatch('<div id="foo">hi</div>');
 
-Taste.flavor('Stringify ParsedClosedElement with textContent')
+Taste.flavor('Stringify ParsedElement with textContent')
 .describe('Converts a ParsedElement to a string')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
@@ -81,18 +93,7 @@ Taste.flavor('Stringify ParsedClosedElement with textContent')
 .expect('elementAsString').toMatch('<p><div>Tags ignored because this is just text</div><p>ignored</p></p>')
 .expect('childrenCount').toEqual(1);
 
-Taste.flavor('Stringify ParsedVoidElement')
-.describe('Converts a ParsedElement into a string')
-.test(profile => {
-  const doc = new ParsedHTMLDocument();
-  const element = doc.createElement('input');
-  doc.fragment.appendChild(element);
-  element.setAttribute('type', 'text');
-  profile.elementAsString = element.stringify();
-})
-.expect('elementAsString').toMatch('<input type="text" />')
-
-Taste.flavor('Stringify ParsedTextElement with textContent')
+Taste.flavor('Stringify ParsedElement with textContent')
 .describe('Converts a ParsedElement into a string')
 .test(profile => {
   const doc = new ParsedHTMLDocument();

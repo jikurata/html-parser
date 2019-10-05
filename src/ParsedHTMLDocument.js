@@ -14,29 +14,31 @@ class ParsedHTMLDocument extends ParsedElement {
       writable: false,
       configurable: false
     });
-    Object.defineProperty(this, 'voidTags', {
-      value: [
-        'doctype',
-        'area',
-        'base',
-        'br',
-        'col',
-        'embed',
-        'hr',
-        'img',
-        'input',
-        'link',
-        'meta',
-        'param',
-        'source',
-        'track',
-        'wbr'
-      ],
+    Object.defineProperty(this, '_config', {
+      value: {
+        voidTags: [
+          'doctype',
+          'area',
+          'base',
+          'br',
+          'col',
+          'embed',
+          'hr',
+          'img',
+          'input',
+          'link',
+          'meta',
+          'param',
+          'source',
+          'track',
+          'wbr'
+        ],
+        trimWhitespace: false
+      },
       enumerable: true,
       writable: false,
       configurable: false
     });
-    this.trimWhitespace = false;
     this.config(options);
   }
 
@@ -45,16 +47,18 @@ class ParsedHTMLDocument extends ParsedElement {
    * @param {Object} options 
    */
   config(options = {}) {
+    // Add void tag name
     if ( options.voidTags ) {
       for ( let i = 0; i < options.voidTags.length; ++i ) {
         const tag = options.voidTags[i];
-        if ( this.voidTags.indexOf(tag) === -1 ) {
-          this.voidTags.push(tag);
+        if ( this._config.voidTags.indexOf(tag) === -1 ) {
+          this._config.voidTags.push(tag);
         }
       }
     }
+    // Toggle excess whitespace trimming
     if ( options.hasOwnProperty('trimWhitespace') ) {
-      this.trimWhitespace = options.trimWhitespace
+      this._config.trimWhitespace = options.trimWhitespace
     }
   }
 
@@ -92,8 +96,8 @@ class ParsedHTMLDocument extends ParsedElement {
 
 
     // Check if the element is a void element
-    if ( this.voidTags.indexOf(o.tagName) > -1 ) {
-      options.mode = 'void';
+    if ( this._config.voidTags.indexOf(o.tagName) > -1 ) {
+      o.mode = 'void';
     }
     if ( !o.nodeType ) {
       // Determine the node type based on tag name
@@ -199,7 +203,7 @@ class ParsedHTMLDocument extends ParsedElement {
    * @returns {ParsedHTMLDocument}
    */
   parse(content) {
-    const document = new ParsedHTMLDocument();
+    const document = new ParsedHTMLDocument(this._config || {});
     const length = content.length;
     const stack = [];
     let currentElement = document.fragment;
@@ -383,11 +387,19 @@ class ParsedHTMLDocument extends ParsedElement {
     }
   
     // Override type as void if it is a void tag
-    if ( this.voidTags.includes(obj.tagName.toLowerCase()) ) {
+    if ( this._config.voidTags.indexOf(obj.tagName.toLowerCase()) > -1 ) {
       obj.mode = 'void';
     }
   
     return obj;
+  }
+
+  get voidTags() {
+    return ( this._config ) ? this._config.voidTags : [];
+  }
+
+  get trimWhitespace() {
+    return ( this._config ) ? this._config.trimWhitespace : false;
   }
 }
 

@@ -1,6 +1,5 @@
 'use strict';
 const Taste = require('@jikurata/taste');
-const htmlParser = require('../src/HtmlParser.js');
 const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
 const ParsedElement = require('../src/element/ParsedElement.js');
 
@@ -8,9 +7,10 @@ const ParsedElement = require('../src/element/ParsedElement.js');
   Taste.flavor('Retrieving tag position')
   .describe('Finds the start and end index of the next html tag, using String.substring rules for indexes')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `<div>This is a test</div>`;
-    const tag1 = htmlParser.findTagPosition(content);
-    const tag2 = htmlParser.findTagPosition(content, tag1[1]);
+    const tag1 = doc.findTagPosition(content);
+    const tag2 = doc.findTagPosition(content, tag1[1]);
     profile.tag1Start = tag1[0];
     profile.tag1End = tag1[1];
     profile.tag2Start = tag2[0];
@@ -24,8 +24,9 @@ const ParsedElement = require('../src/element/ParsedElement.js');
   Taste.flavor('Parsing html tags')
   .describe('Returns attributes, mode and tag name')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `<div id="test" class="some class" data-foo="bar" hidden>`;
-    const tag = htmlParser.parseTagAttributes(content);
+    const tag = doc.parseTagAttributes(content);
     profile.tagName = tag.tagName;
     profile.id = tag.attributes.id;
     profile.class= tag.attributes.class;
@@ -41,20 +42,22 @@ const ParsedElement = require('../src/element/ParsedElement.js');
   Taste.flavor('Parsing a ParsedHTMLDocument')
   .describe('Converts a string into a ParsedHTMLDocument')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `
     <div></div>
     `;
-    profile.document = htmlParser(content);
+    profile.document = doc.parse(content);
   })
   .expect('document').isInstanceOf(ParsedHTMLDocument);
 
   Taste.flavor('Parsing ParsedElements')
   .describe('Parses a string into ParsedElements')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `
     <div id="test" class="some class"data-foo="bar" data-bar="baz">foobar</div>
     `;
-    const document = htmlParser(content);
+    const document = doc.parse(content);
     const element = document.getElementsByTagName('div')[0];
     profile.element = element
     profile.id = element.id;
@@ -71,12 +74,13 @@ const ParsedElement = require('../src/element/ParsedElement.js');
   Taste.flavor('Handle voided elements')
   .describe('Account for non-closed tags')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `
       <section id="closed">This is in a closed tag</section>
       <input id="void" value="this is a void tag">
       <img id="voidWithClosed" src="" />
     `;
-    const document = htmlParser(content);
+    const document = doc.parse(content);
     profile.void = document.getElementById('void');
     profile.voidWithClosed = document.getElementById('voidWithClosed');
   })
@@ -86,6 +90,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
   Taste.flavor('Nested Elements')
   .describe('Account for nested elements')
   .test(profile => {
+    const doc = new ParsedHTMLDocument();
     const content = `
       <section id="root">
         this is a nested text node
@@ -96,7 +101,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
         </div>
       </section>
     `;
-    const document = htmlParser(content);
+    const document = doc.parse(content);
     profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
     profile.level1HasLevel2 = document.getElementById('level2');
   })
@@ -106,6 +111,7 @@ const ParsedElement = require('../src/element/ParsedElement.js');
 Taste.flavor('Full document')
 .describe('Parses a full document')
 .test(profile => {
+  const doc = new ParsedHTMLDocument();
   const content = `
     <!DOCTYPE html>
     <head>
@@ -117,7 +123,7 @@ Taste.flavor('Full document')
       <div></div>
     </body>
   `;
-  const document = htmlParser(content);
+  const document = doc.parse(content);
   profile.doctype = document.getElementsByTagName('!DOCTYPE').length;
   profile.head = document.getElementsByTagName('head').length;
   profile.title = document.getElementsByTagName('title').length;
@@ -133,6 +139,7 @@ Taste.flavor('Full document')
 Taste.flavor('Modify and Stringify a document')
 .describe('Change the contents of a document and convert it back to a string')
 .test(profile => {
+  const doc = new ParsedHTMLDocument();
   const html = `
   <section id="sampleDoc">
       <header class="text">This is a sample</header>
@@ -142,8 +149,8 @@ Taste.flavor('Modify and Stringify a document')
           <div>Another div</div>
       </div>
   </section>`;
-  const doc = htmlParser(html); 
-  const sectionElement = doc.getElementById('sampleDoc')
+  const document = doc.parse(html); 
+  const sectionElement = document.getElementById('sampleDoc')
   const header = sectionElement.getElementsByClassName('text')[0]
 
   sectionElement.setAttribute('data-attr', 'foo');
@@ -152,3 +159,19 @@ Taste.flavor('Modify and Stringify a document')
   profile.modifiedHeader = header.stringify();
 })
 .expect('modifiedHeader').toMatch(`<header class="text">This is a sample and a header too</header>`);
+
+Taste.flavor('Trim html of excess whitespaces')
+.describe('Remove extra whitespaces when true')
+.test(profile => {
+  const doc = new ParsedHTMLDocument();
+  const html = `
+      <section>
+
+    foo
+    bar
+  </section>`;
+  doc.config({trimWhitespace: true});
+  const document = doc.parse(html);
+  profile.trimmedHtml = document.stringify();
+})
+.expect('trimmedHtml').toMatch(`<section>foo bar</section>`);

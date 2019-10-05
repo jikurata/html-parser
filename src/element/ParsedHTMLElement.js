@@ -66,7 +66,7 @@ class ParsedHTMLElement extends ParsedElement {
     else {
       content = this.content || '';
     }
-    return content;
+    return (this.document.trimWhitespace) ? this.trim(content) : content;
   }
   
   stringifyChildren() {
@@ -78,7 +78,7 @@ class ParsedHTMLElement extends ParsedElement {
         content += child.stringify();
       }
     }
-    return content;
+    return (this.document.trimWhitespace) ? this.trim(content) : content;
   }
 
   get textContent() {
@@ -101,6 +101,9 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set textContent(content) {
+    if ( this.document.trimWhitespace ) {
+      content = this.trim(content);
+    }
     if ( this.mode === 'closed' ) {
       // Create a text element with provided content
       const element = this.document.createTextElement(content);
@@ -112,6 +115,9 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set innerHTML(content) {
+    if ( this.document.trimWhitespace ) {
+      content = this.trim(content);
+    }
     if ( this.mode === 'closed' ) {
       const partial = this.parse(content);
       const list = [];
@@ -127,6 +133,9 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set outerHTML(content) {
+    if ( this.document.trimWhitespace ) {
+      content = this.trim(content);
+    }
     // Overwrite the children of this element's parent
     if ( this.parent ) {
       this.parent.innerHTML = content;

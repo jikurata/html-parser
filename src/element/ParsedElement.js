@@ -153,7 +153,12 @@ class ParsedElement extends EmittableMap {
   }
 
   stringify() {
-    return this.content || '';
+    const content = this.content || '';
+    return (this.document.trimWhitespace) ? this.trim(content) : content;
+  }
+
+  trim(content) {
+    return content.replace(/\n+|\r+/, ' ').replace(/\s+/, ' ').trim();
   }
 
   get id() {
