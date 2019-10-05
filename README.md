@@ -102,6 +102,7 @@ constructor(options)
 - prependChild(element)
     - element {ParsedElement}
 - stringifyChildren()
+
 ### object **ConfigOptions**
 - voidTags {Array}
 - trimWhitespace {Boolean}
