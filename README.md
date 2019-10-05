@@ -48,8 +48,72 @@ Modify the ParsedHTMLDocument or any of its ParsedElements with familiar methods
 ```
 ## Documentation
 ---
-class **ParsedHTMLDocument**
+### class **ParsedElement**
+constructor(options)
+- options {ParsedElementOptions}
+#### Properties
+- referenceId {String}
+#### Methods
+- getElementById(id)
+    - id {String}
+- getElementsByTagName(tag)
+    - tag {String}
+- getElementsByClassName(name)
+    - name {String}
+- hasAttribute(attr)
+    - attr {String}
+- getAttribute(attr)
+    - attr {String}
+- setAttribute(attr, value) 
+    - attr {String}
+    - value {String}
+- removeChildren(elements)
+    - elements {ParsedElement|Array[ParsedElement]}
+- getDescendants()
+- stringify()
 
+### class **ParsedHTMLDocument** extends ParsedElement
+constructor(options)
+- options {ConfigOptions}
+#### Properties
+- fragment {ParsedFragmentElement}
+#### Methods
+- config(options)
+    - options {ConfigOptions}
+- createElement(options)
+    - options {ParsedElementOptions}
+- createTextElement(text)
+    - text {String}
+- deleteElement(elements)
+    - elements {ParsedElement|Array[ParsedElement]}
+- parse(content)
+    - content {String}
+
+### class **ParsedHTMLElement** extends ParsedElement
+constructor(options)
+- options {ParsedElementOptions}
+#### Properties
+- textContent {String}
+- innerHTML {String}
+- outerHTML {String}
+#### Methods
+- appendChild(element)
+    - element {ParsedElement}
+- prependChild(element)
+    - element {ParsedElement}
+- stringifyChildren()
+### object **ConfigOptions**
+- voidTags {Array}
+- trimWhitespace {Boolean}
+
+### object **ParsedElementOptions**
+- tagName: {String}
+- nodeType: {String},
+- mode: {String}
+- attributes {Object},
+- content: {String},
+- parent: {ParsedElement},
+- children: {Array[ParsedElement]}
 
 ## Version Log
 ---

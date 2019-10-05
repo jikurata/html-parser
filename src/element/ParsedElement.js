@@ -45,6 +45,17 @@ class ParsedElement extends EmittableMap {
     }
   }
 
+  getElementsByTagName(tag) {
+    const list = [];
+    for ( let i = 0; i < this.children.length; ++i ) {
+      const e = this.children[i];
+      if ( tag === e.tagName ) {
+        list.push(e);
+      }
+    }
+    return list;
+  }
+
   getElementsByClassName(className) {
     const list = [];
     for ( let i = 0; i < this.children.length; ++i ) {
@@ -56,17 +67,6 @@ class ParsedElement extends EmittableMap {
             list.push(e);
           }
         }
-      }
-    }
-    return list;
-  }
-
-  getElementsByTagName(tag) {
-    const list = [];
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const e = this.children[i];
-      if ( tag === e.tagName ) {
-        list.push(e);
       }
     }
     return list;
