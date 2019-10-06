@@ -183,6 +183,21 @@ Taste.flavor('Stringify ParsedElement with outerHTML')
 })
 .expect('elementAsString').toMatch('<div id="foo">hi</div>');
 
+Taste.flavor('Stringify ParsedElement with outerHTML')
+.describe('Converts a ParsedElement to a string')
+.test(profile => {
+  const content = `
+    <header></header>
+    <section></section>
+  `
+  const doc = new ParsedHTMLDocument({config:{trimWhitespace: true}});
+  const document = doc.parse(content);
+  const element = document.getElementsByTagName('section')[0];
+  element.outerHTML = '<div id="foo">hi</div>';
+  profile.elementAsString = document.stringify();
+})
+.expect('elementAsString').toMatch('<header></header><div id="foo">hi</div>');
+
 Taste.flavor('Stringify ParsedElement with textContent')
 .describe('Converts a ParsedElement to a string')
 .test(profile => {

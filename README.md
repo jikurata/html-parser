@@ -67,6 +67,9 @@ constructor(options)
 - setAttribute(attr, value) 
     - attr {String}
     - value {String}
+- replaceChild(child, elements)
+    - child {ParsedElement}
+    - elements {ParsedElement|Array[ParsedElement]}
 - remove()
 - removeChildren(elements)
     - elements {ParsedElement|Array[ParsedElement]}
@@ -120,7 +123,8 @@ constructor(options)
 ## Version Log
 ---
 **v0.0.2**
-
+- Implement replaceChild method for ParsedElement
+- Fixed outerHTML setter to properly overwrite the parent element's children
 
 **v0.0.1**
 - ParsedElement emits update events and propagate the updates to its ancestors
