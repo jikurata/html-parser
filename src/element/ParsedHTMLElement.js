@@ -80,12 +80,20 @@ class ParsedHTMLElement extends ParsedElement {
   get textContent() {
     if ( this.mode === 'closed') {
       const opentag = this.document.findTagPosition(this.content);
-      const closedtag = (opentag) ? this.document.findTagPosition(this.content, opentag[1]) : null;
+      let closedtag = null;
+      let position = opentag;
+      while ( position ) {
+        position = this.document.findTagPosition(this.content, position[1]);
+        if ( position ) {
+          closedtag = position;
+        }
+      }
       if ( closedtag ) {
-        return this.content.substring(opentag[1], closedtag[0]);
+        const content = this.content.substring(opentag[1], closedtag[0]);
+        return (this.document.trimWhitespace) ? this.trim(content) : content;
       }
     }
-    return this.content;
+    return (this.document.trimWhitespace) ? this.trim(this.content) : this.content;
   }
 
   get innerHTML() {
