@@ -10,10 +10,6 @@ class ParsedHTMLElement extends ParsedElement {
       writable: false,
       configurable: false
     });
-    this.setAll({
-      'tagName': param.tagName || null,
-      'mode': param.mode || null 
-    }, false);
 
     this.set('content', this.stringify(), false);
   }
@@ -22,8 +18,8 @@ class ParsedHTMLElement extends ParsedElement {
     if ( !(element instanceof ParsedElement) ) {
       throw new TypeError(`Expected argument to be instance of ParsedElement`);
     }
-    this.children.push(element);
     element.set('parent', this, false);
+    this.children.push(element);
     element.emit('propagate-update', element.referenceId);
   }
 
@@ -138,7 +134,8 @@ class ParsedHTMLElement extends ParsedElement {
     }
     // Overwrite the children of this element's parent
     if ( this.parent ) {
-      this.parent.innerHTML = content;
+      const doc = this.parse(content);
+      this.parent.replaceChild(this, doc.fragment.children);
     }
   }
 }

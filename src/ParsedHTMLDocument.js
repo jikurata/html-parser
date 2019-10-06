@@ -39,7 +39,7 @@ class ParsedHTMLDocument extends ParsedElement {
       writable: false,
       configurable: false
     });
-    this.config(options);
+    this.config(options.config || {});
   }
 
   /**
@@ -58,7 +58,7 @@ class ParsedHTMLDocument extends ParsedElement {
     }
     // Toggle excess whitespace trimming
     if ( options.hasOwnProperty('trimWhitespace') ) {
-      this._config.trimWhitespace = options.trimWhitespace
+      this._config.trimWhitespace = options.trimWhitespace;
     }
   }
 
@@ -130,14 +130,6 @@ class ParsedHTMLDocument extends ParsedElement {
     return this.createElement(o);
   }
 
-  getNextId() {
-    return `${Date.now()}${this.children.length}`;
-  }
-
-  stringify() {
-    return this.fragment.stringify();
-  }
-
   /**
    * Removes any matching elements from the document does not delete
    * from the document's cache
@@ -203,11 +195,13 @@ class ParsedHTMLDocument extends ParsedElement {
    * @returns {ParsedHTMLDocument}
    */
   parse(content) {
-    const document = new ParsedHTMLDocument(this._config || {});
+    const document = new ParsedHTMLDocument();
     const length = content.length;
     const stack = [];
     let currentElement = document.fragment;
-  
+
+    document.config(this._config);
+
     let i = 0;
     while ( i < length ) {
       const pos = this.findTagPosition(content, i);
@@ -393,6 +387,19 @@ class ParsedHTMLDocument extends ParsedElement {
   
     return obj;
   }
+
+  getNextId() {
+    return `${Date.now()}${this.children.length}`;
+  }
+
+  stringify() {
+    let content = this.fragment.stringify();
+    if ( this.trimWhitespace ) {
+      content = this.trim(content);
+    }
+    return content;
+  }
+
 
   get voidTags() {
     return ( this._config ) ? this._config.voidTags : [];

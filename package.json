@@ -1,14 +1,14 @@
 {
   "name": "@jikurata/html-parser",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "Parse html into a pseudo HTMLDocument",
   "repository": "https://github.com/jikurata/html-parser",
   "main": "index.js",
   "scripts": {
     "test:map": "node ./test/emittable-map.test.js",
+    "test:element": "node ./test/parsed-element.test.js",
     "test:document": "node ./test/document.test.js",
-    "test:parser": "node ./test/html-parser.test.js",
-    "test": "npm run test:map && npm run test:document && npm run test:parser"
+    "test": "npm run test:map && npm run test:element && npm run test:document"
   },
   "keywords": [
     "html",

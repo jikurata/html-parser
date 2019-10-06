@@ -12,7 +12,9 @@ class ParsedElement extends EmittableMap {
     });
 
     this.setAll({
+      'tagName': param.tagName || null,
       'nodeType': param.nodeType || 'element',
+      'mode': param.mode || null,
       'attributes': param.attributes || {},
       'content': param.content || '',
       'parent': param.parent || null,
@@ -87,6 +89,49 @@ class ParsedElement extends EmittableMap {
       if ( emit ) {
         this.emit('change', attr, value, oldValue);
       }
+    }
+  }
+
+  /**
+   * Replace the child with the elements
+   * @param {ParsedElement} child 
+   * @param {ParsedElement|Array[ParsedElements]} elements
+   */
+  replaceChild(child, elements) {
+    if ( elements instanceof ParsedElement ) {
+      elements = [elements];
+    }
+    // Get child's parent
+    const parent = child.parent;
+    if ( parent ) {
+      const ids = [];
+      let list = [];
+
+      // Get all of the replacement element ids
+      for ( let i = 0; i < elements.length; ++i ) {
+        ids.push(elements[i].referenceId);
+      }
+
+      // Find child in parent's children
+      for ( let i = 0; i < parent.children.length; ++i ) {
+        const e = parent.children[i];
+        const id = e.referenceId;
+        // push the child back into the list if it does not match the original child or replacements
+        if ( child.referenceId !== id && ids.indexOf(id) === -1 ) {
+          list.push(e);
+        }
+        else {
+          // Replace this index with the element
+          for ( let j = 0; j < elements.length; ++j ) {
+            elements[j].set('parent', parent, false);
+          }
+          list = list.concat(elements);
+          child.parent = null;
+        }
+      }
+
+      // Update parent's children
+      parent.children = list;
     }
   }
 

@@ -1,4 +1,4 @@
-# html-parser v0.0.1
+# html-parser v0.0.2
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -67,6 +67,7 @@ constructor(options)
 - setAttribute(attr, value) 
     - attr {String}
     - value {String}
+- remove()
 - removeChildren(elements)
     - elements {ParsedElement|Array[ParsedElement]}
 - getDescendants()
@@ -118,6 +119,9 @@ constructor(options)
 
 ## Version Log
 ---
+**v0.0.2**
+
+
 **v0.0.1**
 - ParsedElement emits update events and propagate the updates to its ancestors
 - Implement textContent, innerHTML, outerHTML
