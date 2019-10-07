@@ -108,8 +108,9 @@ constructor(options)
 - stringifyChildren()
 
 ### object **ConfigOptions**
-- voidTags {Array}
-- trimWhitespace {Boolean}
+- config {Object}
+    - voidTags {Array}
+    - trimWhitespace {Boolean}
 
 ### object **ParsedElementOptions**
 - tagName: {String}
