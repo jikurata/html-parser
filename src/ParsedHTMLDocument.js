@@ -17,7 +17,7 @@ class ParsedHTMLDocument extends ParsedElement {
     Object.defineProperty(this, '_config', {
       value: {
         voidTags: [
-          'doctype',
+          '!doctype',
           'area',
           'base',
           'br',
