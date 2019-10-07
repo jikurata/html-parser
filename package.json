@@ -1,7 +1,7 @@
 {
   "name": "@jikurata/html-parser",
-  "version": "0.0.2",
-  "description": "Parse html into a pseudo HTMLDocument",
+  "version": "0.0.3",
+  "description": "Parse html into a HTMLDocument",
   "repository": "https://github.com/jikurata/html-parser",
   "main": "index.js",
   "scripts": {

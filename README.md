@@ -1,4 +1,4 @@
-# html-parser v0.0.2
+# html-parser v0.0.3
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -122,6 +122,10 @@ constructor(options)
 
 ## Version Log
 ---
+**v.0.0.3**
+- Fixed an issue that caused textContent and innerHTML to return an empty string when multiple distinct tags were involved
+- !doctype is now recognized as a void tag
+
 **v0.0.2**
 - Implement replaceChild method for ParsedElement
 - Fixed outerHTML setter to properly overwrite the parent element's children
