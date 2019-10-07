@@ -125,6 +125,7 @@ constructor(options)
 **v.0.0.3**
 - Fixed an issue that caused textContent and innerHTML to return an empty string when multiple distinct tags were involved
 - !doctype is now recognized as a void tag
+- TODO: Implement a clone method for ParsedElement
 
 **v0.0.2**
 - Implement replaceChild method for ParsedElement
