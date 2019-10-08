@@ -281,12 +281,12 @@ Taste.flavor('Child replacement')
 .test(profile => {
   const doc = new ParsedHTMLDocument({config: {trimWhitespace: true}});
   const child = doc.createElement('p');
-  const replacement = doc.createElement('span')
-  doc.fragment.appendChild(child);
+  const replacement = doc.createElement('span');
+  doc.appendChild(child);
   doc.replaceChild(child, replacement);
   profile.replacedHTML = doc.stringify();
 })
-.expect('replacedHTML').toMatch('<span></span>');
+.expect('replacedHTML').toEqual('<span></span>');
 
 Taste.flavor('Child replacement')
 .describe('Replace a child element with an array of elements')

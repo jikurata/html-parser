@@ -151,6 +151,10 @@ class ParsedHTMLDocument extends ParsedElement {
     this.fragment.prependChild(element);
   }
 
+  replaceChild(child, elements) {
+    this.fragment.replaceChild(child, elements);
+  }
+
   /**
    * Removes any matching elements from the document does not delete
    * from the document's cache
@@ -420,7 +424,6 @@ class ParsedHTMLDocument extends ParsedElement {
     }
     return content;
   }
-
 
   get voidTags() {
     return ( this._config ) ? this._config.voidTags : [];
