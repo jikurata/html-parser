@@ -40,6 +40,19 @@ class ParsedHTMLDocument extends ParsedElement {
       configurable: false
     });
     this.config(options.config || {});
+    
+    // When an element updates, check for new elements to add to the document
+    this.fragment.on('propagate-update', (id) => {
+      const descendants = this.getDescendants();
+      const ids = this.getChildrenRefIds();
+      // add any new elements to the document's children
+      for ( let i = 0; i < descendants.length; ++i ) {
+        const e = descendants[i];
+        if ( ids.indexOf(e.referenceId) === -1 ) {
+          this.children.push(e);
+        }
+      }
+    });
   }
 
   /**
@@ -128,6 +141,14 @@ class ParsedHTMLDocument extends ParsedElement {
       parent: options.parent || null
     };
     return this.createElement(o);
+  }
+
+  appendChild(element) {
+    this.fragment.appendChild(element);
+  }
+
+  prependChild(element) {
+    this.fragment.prependChild(element);
   }
 
   /**

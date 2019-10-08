@@ -14,24 +14,6 @@ class ParsedHTMLElement extends ParsedElement {
     this.set('content', this.stringify(), false);
   }
 
-  appendChild(element) {
-    if ( !(element instanceof ParsedElement) ) {
-      throw new TypeError(`Expected argument to be instance of ParsedElement`);
-    }
-    element.set('parent', this, false);
-    this.children.push(element);
-    element.emit('propagate-update', element.referenceId);
-  }
-
-  prependChild(element) {
-    if ( !(element instanceof ParsedElement) ) {
-      throw new TypeError(`Expected argument to be instance of ParsedElement`);
-    }
-    this.children.push(element);
-    element.set('parent', this, false);
-    element.emit('propagate-update', element.referenceId);
-  }
-
   parse(content) {
     return this.document.parse(content);
   }

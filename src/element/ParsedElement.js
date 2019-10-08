@@ -92,46 +92,61 @@ class ParsedElement extends EmittableMap {
     }
   }
 
+  appendChild(element) {
+    if ( !(element instanceof ParsedElement) ) {
+      throw new TypeError(`Expected argument to be instance of ParsedElement`);
+    }
+    element.set('parent', this, false);
+    this.children.push(element);
+    element.emit('propagate-update', element.referenceId);
+  }
+
+  prependChild(element) {
+    if ( !(element instanceof ParsedElement) ) {
+      throw new TypeError(`Expected argument to be instance of ParsedElement`);
+    }
+    this.children.push(element);
+    element.set('parent', this, false);
+    element.emit('propagate-update', element.referenceId);
+  }
+
   /**
    * Replace the child with the elements
    * @param {ParsedElement} child 
    * @param {ParsedElement|Array[ParsedElements]} elements
    */
   replaceChild(child, elements) {
-    if ( elements instanceof ParsedElement ) {
-      elements = [elements];
-    }
-    // Get child's parent
-    const parent = child.parent;
-    if ( parent ) {
+    if ( this.hasElement(child) ) {
+      if ( elements instanceof ParsedElement ) {
+        elements = [elements];
+      }
+  
       const ids = [];
-      let list = [];
-
-      // Get all of the replacement element ids
+      const list = [];
+  
       for ( let i = 0; i < elements.length; ++i ) {
         ids.push(elements[i].referenceId);
       }
-
+  
       // Find child in parent's children
-      for ( let i = 0; i < parent.children.length; ++i ) {
-        const e = parent.children[i];
-        const id = e.referenceId;
-        // push the child back into the list if it does not match the original child or replacements
-        if ( child.referenceId !== id && ids.indexOf(id) === -1 ) {
-          list.push(e);
+      for ( let i = 0; i < this.children.length; ++i ) {
+        const element = this.children[i];
+        const id = element.referenceId;
+        // push the element back into the list if it does not match the original child or replacements
+        if ( id !== child.referenceId && ids.indexOf(id) === -1 ) {
+          list.push(element);
         }
         else {
-          // Replace this index with the element
+          // Replace this index with the elements
           for ( let j = 0; j < elements.length; ++j ) {
-            elements[j].set('parent', parent, false);
+            elements[j].parent = this;
+            list.push(elements[j]);
           }
-          list = list.concat(elements);
           child.parent = null;
         }
       }
 
-      // Update parent's children
-      parent.children = list;
+      this.children = list;
     }
   }
 
@@ -195,6 +210,22 @@ class ParsedElement extends EmittableMap {
       }
     }
     return list;
+  }
+
+  /**
+   * Checks if the element owns the child
+   * @param {ParsedElement} element 
+   * @returns {Boolean}
+   */
+  hasElement(element) {
+    const id = element.referenceId;
+    for ( let i = 0; i < this.children.length; ++i ) {
+      const child = this.children[i];
+      if ( id === child.referenceId ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   stringify() {
