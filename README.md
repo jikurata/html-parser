@@ -1,4 +1,4 @@
-# html-parser v0.0.3
+# html-parser v0.0.4
 Synchronously parse html into a HTML Document object
 ---
 ## Install
