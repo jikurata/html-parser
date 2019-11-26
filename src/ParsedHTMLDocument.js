@@ -383,7 +383,7 @@ class ParsedHTMLDocument extends ParsedElement {
           else if ( content[i] === ' ' ) {
             const attributeName = attribute.join('');
             if ( attributeName ) {
-              obj.attributes[attributeName] = true;
+              obj.attributes[attributeName] = null;
             }
             attribute.length = 0;
           }
@@ -392,11 +392,11 @@ class ParsedHTMLDocument extends ParsedElement {
           }
         }
   
-        // If attribute contains characters, then there was an attribute at the end
+        // If attribute contains characters, then there was an implicit attribute at the end
         if ( attribute.length ) {
           const attributeName = attribute.join('').replace('/', '');
           if ( attributeName ) {
-            obj.attributes[attributeName] = true;
+            obj.attributes[attributeName] = null;
           }
         }
       }

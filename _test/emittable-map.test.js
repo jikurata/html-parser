@@ -2,8 +2,7 @@
 const Taste = require('@jikurata/taste');
 const EmittableMap = require('../src/EmittableMap.js');
 
-Taste.flavor('Creating a key-value pair')
-.describe('Define a k-v pair in the map')
+Taste('Creating a key-value pair')
 .test(profile => {
   const map = new EmittableMap();
   map.set('foo', 'bar');
@@ -11,8 +10,7 @@ Taste.flavor('Creating a key-value pair')
 })
 .expect('fooValue').toEqual('bar');
 
-Taste.flavor('Changing a key-value pair')
-.describe('Setter updates the key value pair')
+Taste('Changing a key-value pair')
 .test(profile => {
   const map = new EmittableMap();
   map.set('foo', 'bar');
@@ -21,8 +19,7 @@ Taste.flavor('Changing a key-value pair')
 })
 .expect('changedValue').toEqual('baz');
 
-Taste.flavor('Change event')
-.describe('Emits a change event when a key value pair changes')
+Taste('Change event')
 .test(profile => {
   const map = new EmittableMap();
   map.on('change', (k, v) => {
@@ -37,3 +34,5 @@ Taste.flavor('Change event')
   map.set('foo', 'bar');
 })
 .expect('emitChange').toBeTruthy();
+
+module.exports = Taste;

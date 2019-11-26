@@ -22,7 +22,6 @@ class ParsedElement extends EmittableMap {
     }, false);
     this.setAll(param, false);
 
-
     // Emit update event when the element's model mutates
     this.on('change', (property, value, oldValue) => {
       this.emit('propagate-update', this.referenceId);
@@ -72,24 +71,6 @@ class ParsedElement extends EmittableMap {
       }
     }
     return list;
-  }
-
-  hasAttribute(attr) {
-    return this.attributes.hasOwnProperty(attr);
-  }
-
-  getAttribute(attr) {
-    return this.attributes[attr];
-  }
-
-  setAttribute(attr, value, emit = true) {
-    if ( this.attributes[attr] !== value ) {
-      const oldValue = this.attributes[attr];
-      this.attributes[attr] = value;
-      if ( emit ) {
-        this.emit('change', attr, value, oldValue);
-      }
-    }
   }
 
   appendChild(element) {
@@ -230,11 +211,29 @@ class ParsedElement extends EmittableMap {
 
   stringify() {
     const content = this.content || '';
-    return (this.document.trimWhitespace) ? this.trim(content) : content;
+    return this.trim(content);
   }
 
   trim(content) {
     return content.replace(/\n+|\r+/, ' ').replace(/\s+/, ' ').trim();
+  }
+
+  hasAttribute(attr) {
+    return this.attributes.hasOwnProperty(attr);
+  }
+
+  getAttribute(attr) {
+    return this.attributes[attr];
+  }
+
+  setAttribute(attr, value, emit = true) {
+    if ( this.attributes[attr] !== value ) {
+      const oldValue = this.attributes[attr];
+      this.attributes[attr] = value;
+      if ( emit ) {
+        this.emit('change', attr, value, oldValue);
+      }
+    }
   }
 
   get id() {

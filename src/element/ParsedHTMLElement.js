@@ -26,7 +26,14 @@ class ParsedHTMLElement extends ParsedElement {
       const attributes = Object.keys(this.attributes);
       for ( let i = 0; i < attributes.length; ++i ) {
         const attr = attributes[i];
-        content += ` ${attr}="${this.attributes[attr]}"`;
+        const value = this.attributes[attr];
+        // a null value means the attribute is an implicit attribute
+        if ( value === null ) {
+          content += ` ${attr}`;
+        }
+        else {
+          content += ` ${attr}="${value}"`;
+        }
       }
       content += '>';
       content += this.stringifyChildren();

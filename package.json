@@ -5,10 +5,10 @@
   "repository": "https://github.com/jikurata/html-parser",
   "main": "index.js",
   "scripts": {
-    "test:map": "node ./test/emittable-map.test.js",
-    "test:element": "node ./test/parsed-element.test.js",
-    "test:document": "node ./test/document.test.js",
-    "test": "npm run test:map && npm run test:element && npm run test:document"
+    "test:map": "node ./_test/emittable-map.test.js",
+    "test:element": "node ./_test/parsed-element.test.js",
+    "test:document": "node ./_test/document.test.js",
+    "test": "node ./_test/test.js"
   },
   "keywords": [
     "html",
@@ -18,6 +18,6 @@
   "author": "jikurata",
   "license": "ISC",
   "devDependencies": {
-    "@jikurata/taste": "0.0.6"
+    "@jikurata/taste": "1.1.0"
   }
 }
