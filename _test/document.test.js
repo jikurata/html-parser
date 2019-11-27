@@ -3,19 +3,17 @@ const Taste = require('@jikurata/taste');
 const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
 const ParsedElement = require('../src/element/ParsedElement.js');
 
-Taste.flavor('Creating ParsedElements')
-.describe('Creates a ParsedElement and adds it to children')
+Taste('Creating ParsedElements')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const e = doc.createElement('div');
   profile.element = e;
   profile.length = doc.children.length;
 })
-.expect('element').isInstanceOf(ParsedElement)
+.expect('element').toBeInstanceOf(ParsedElement)
 .expect('length').toEqual(1);
 
-Taste.flavor('Element retrieval')
-.describe('Retrieves elements using familiar dom search methods')
+Taste('Element retrieval')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const e = doc.createElement('div');
@@ -29,12 +27,11 @@ Taste.flavor('Element retrieval')
   profile.findByClass = doc.getElementsByClassName('name').length;
   profile.findByTagName = doc.getElementsByTagName('div').length;
 })
-.expect('findById').isInstanceOf(ParsedElement)
+.expect('findById').toBeInstanceOf(ParsedElement)
 .expect('findByClass').toEqual(2)
 .expect('findByTagName').toEqual(2);
 
-Taste.flavor('Update event propagation')
-.describe('ParsedElements signal their parent to emit an update event')
+Taste('Update event propagation')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('div');
@@ -46,9 +43,9 @@ Taste.flavor('Update event propagation')
 })
 .expect('eventPropagation').toBeTruthy();
 
-Taste.flavor('Retrieving tag position')
-.describe('Finds the start and end index of the next html tag, using String.substring rules for indexes')
-.test(profile => {
+Taste('Retrieving tag position')
+.test('Finds the start and end index of the next html tag, using String.substring rules for indexes',
+profile => {
   const doc = new ParsedHTMLDocument();
   const content = `<div>This is a test</div>`;
   const tag1 = doc.findTagPosition(content);
@@ -63,8 +60,7 @@ Taste.flavor('Retrieving tag position')
 .expect('tag2Start').toEqual(19)
 .expect('tag2End').toEqual(25);
 
-Taste.flavor('Parsing html tags')
-.describe('Returns attributes, mode and tag name')
+Taste('Parsing html tags')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `<div id="test" class="some class" data-foo="bar" hidden>`;
@@ -79,10 +75,9 @@ Taste.flavor('Parsing html tags')
 .expect('id').toEqual('test')
 .expect('class').toEqual('some class')
 .expect('foo').toEqual('bar')
-.expect('hidden').toBeTruthy();
+.expect('hidden').toEqual(null);
 
-Taste.flavor('Parsing a ParsedHTMLDocument')
-.describe('Converts a string into a ParsedHTMLDocument')
+Taste('Parsing a ParsedHTMLDocument')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `
@@ -90,10 +85,9 @@ Taste.flavor('Parsing a ParsedHTMLDocument')
   `;
   profile.document = doc.parse(content);
 })
-.expect('document').isInstanceOf(ParsedHTMLDocument);
+.expect('document').toBeInstanceOf(ParsedHTMLDocument);
 
-Taste.flavor('Parsing ParsedElements')
-.describe('Parses a string into ParsedElements')
+Taste('Parsing ParsedElements')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `
@@ -107,14 +101,22 @@ Taste.flavor('Parsing ParsedElements')
   profile.dataFoo = element.getAttribute('data-foo');
   profile.dataBar = element.getAttribute('data-bar');
 })
-.expect('element').isInstanceOf(ParsedElement)
+.expect('element').toBeInstanceOf(ParsedElement)
 .expect('id').toEqual('test')
 .expect('className').toEqual('some class')
 .expect('dataFoo').toEqual('bar')
 .expect('dataBar').toEqual('baz');
 
-Taste.flavor('Handle voided elements')
-.describe('Account for non-closed tags')
+Taste('null attributes get parsed as implicit attributes')
+.test(profile => {
+  const doc = new ParsedHTMLDocument({config:{trimWhitespace: true}});
+  const el = doc.createElement('div');
+  el.setAttribute('implicitAttr', null);
+  profile.html = doc.getElementsByTagName('div')[0].stringify();
+})
+.expect('html').toEqual('<div implicitAttr></div>');
+
+Taste('Handle voided elements')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `
@@ -126,11 +128,10 @@ Taste.flavor('Handle voided elements')
   profile.void = document.getElementById('void');
   profile.voidWithClosed = document.getElementById('voidWithClosed');
 })
-.expect('void').isInstanceOf(ParsedElement)
-.expect('voidWithClosed').isInstanceOf(ParsedElement);
+.expect('void').toBeInstanceOf(ParsedElement)
+.expect('voidWithClosed').toBeInstanceOf(ParsedElement);
 
-Taste.flavor('Nested Elements')
-.describe('Account for nested elements')
+Taste('Nested Elements')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `
@@ -147,12 +148,12 @@ Taste.flavor('Nested Elements')
   profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
   profile.level1HasLevel2 = document.getElementById('level2');
 })
-.expect('rootHasUniqueParagraph').isInstanceOf(ParsedElement)
-.expect('level1HasLevel2').isInstanceOf(ParsedElement);
+.expect('rootHasUniqueParagraph').toBeInstanceOf(ParsedElement)
+.expect('level1HasLevel2').toBeInstanceOf(ParsedElement);
 
-Taste.flavor('Stringify ParsedElement')
-.describe('Converts a ParsedElement into a string')
-.test(profile => {
+Taste('Stringify ParsedElement')
+.test('Converts a ParsedElement into a string',
+profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('input');
   doc.fragment.appendChild(element);
@@ -161,9 +162,9 @@ Taste.flavor('Stringify ParsedElement')
 })
 .expect('elementAsString').toMatch('<input type="text" />')
 
-Taste.flavor('Stringify ParsedElement with innerHTML')
-.describe('Converts a ParsedElement to a string')
-.test(profile => {
+Taste('Stringify ParsedElement with innerHTML')
+.test('Converts a ParsedElement to a string',
+profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('p');
   doc.fragment.appendChild(element);
@@ -172,9 +173,9 @@ Taste.flavor('Stringify ParsedElement with innerHTML')
 })
 .expect('elementAsString').toMatch('<p>test</p>');
 
-Taste.flavor('Stringify ParsedElement with outerHTML')
-.describe('Converts a ParsedElement to a string')
-.test(profile => {
+Taste('Stringify ParsedElement with outerHTML')
+.test('Converts a ParsedElement to a string',
+profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('p');
   doc.fragment.appendChild(element);
@@ -183,9 +184,9 @@ Taste.flavor('Stringify ParsedElement with outerHTML')
 })
 .expect('elementAsString').toMatch('<div id="foo">hi</div>');
 
-Taste.flavor('Stringify ParsedElement with outerHTML')
-.describe('Converts a ParsedElement to a string')
-.test(profile => {
+Taste('Stringify ParsedElement with outerHTML')
+.test('Converts a ParsedElement to a string',
+profile => {
   const content = `
     <header></header>
     <section></section>
@@ -198,8 +199,7 @@ Taste.flavor('Stringify ParsedElement with outerHTML')
 })
 .expect('elementAsString').toMatch('<header></header><div id="foo">hi</div>');
 
-Taste.flavor('Stringify ParsedElement with textContent')
-.describe('Converts a ParsedElement to a string')
+Taste('Stringify ParsedElement with textContent')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const element = doc.createElement('p');
@@ -211,8 +211,7 @@ Taste.flavor('Stringify ParsedElement with textContent')
 .expect('elementAsString').toMatch('<p><div>Tags ignored because this is just text</div><p>ignored</p></p>')
 .expect('childrenCount').toEqual(1);
 
-Taste.flavor('Stringify ParsedElement with textContent')
-.describe('Converts a ParsedElement into a string')
+Taste('Stringify ParsedElement with textContent')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const text = doc.createTextElement('foo');
@@ -222,8 +221,7 @@ Taste.flavor('Stringify ParsedElement with textContent')
 })
 .expect('elementAsString').toMatch('bar');
 
-Taste.flavor('Full document')
-.describe('Parses a full document')
+Taste('Parsing a full document')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const content = `
@@ -251,8 +249,7 @@ Taste.flavor('Full document')
 .expect('p').toEqual(1);
 
 
-Taste.flavor('Modify and Stringify a document')
-.describe('Change the contents of a document and convert it back to a string')
+Taste('Modify and Stringify a document')
 .test(profile => {
   const doc = new ParsedHTMLDocument();
   const html = `
@@ -276,8 +273,7 @@ Taste.flavor('Modify and Stringify a document')
 .expect('modifiedHeader').toMatch(`<header class="text">This is a sample and a header too</header>`);
 
 
-Taste.flavor('Child replacement')
-.describe('Replace a child element with another element')
+Taste('Child replacement')
 .test(profile => {
   const doc = new ParsedHTMLDocument({config: {trimWhitespace: true}});
   const child = doc.createElement('p');
@@ -288,9 +284,9 @@ Taste.flavor('Child replacement')
 })
 .expect('replacedHTML').toEqual('<span></span>');
 
-Taste.flavor('Child replacement')
-.describe('Replace a child element with an array of elements')
-.test(profile => {
+Taste('Child replacement')
+.test('Replace a child element with an array of elements',
+profile => {
   const content = `
     <div>
       <p>foo</p>
@@ -308,8 +304,7 @@ Taste.flavor('Child replacement')
 })
 .expect('replacedHTML').toMatch('<div><p>foo</p></div><div>bar</div>');
 
-Taste.flavor('Trim html of excess whitespaces')
-.describe('Remove extra whitespaces when true')
+Taste('Trim html of excess whitespaces')
 .test(profile => {
   const doc = new ParsedHTMLDocument({config:{trimWhitespace: true}});
   const html = `
@@ -322,3 +317,5 @@ Taste.flavor('Trim html of excess whitespaces')
   profile.trimmedHtml = document.stringify();
 })
 .expect('trimmedHtml').toMatch(`<section>foo bar</section>`);
+
+module.exports = Taste;
