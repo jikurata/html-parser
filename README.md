@@ -1,4 +1,4 @@
-# html-parser v0.0.4
+# html-parser v0.0.5
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -123,13 +123,16 @@ constructor(options)
 
 ## Version Log
 ---
-**v.0.0.4**
+**v0.0.5**
+- Attributes with a null value are parsed as implicit attributes
+
+**v0.0.4**
 - Fixed an issue that prevented htmldocument from updating its contents
 - Refactored appendChild and prependChild to be available in ParsedElement
 - htmldocument's replaceChild, appendChild, and prependChild methods now invoke its fragment's methods
 - TODO: Implement a clone method for ParsedElement
 
-**v.0.0.3**
+**v0.0.3**
 - Fixed an issue that caused textContent and innerHTML to return an empty string when multiple distinct tags were involved
 - !doctype is now recognized as a void tag
 - TODO: Implement a clone method for ParsedElement
