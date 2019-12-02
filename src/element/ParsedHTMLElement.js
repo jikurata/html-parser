@@ -19,38 +19,34 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   stringify() {
-    // Append opening tag
-    let content = '';
+    let closingContent = ''
     if ( this.mode === 'closed' ) {
-      content = `<${this.tagName}`;
-      const attributes = Object.keys(this.attributes);
-      for ( let i = 0; i < attributes.length; ++i ) {
-        const attr = attributes[i];
-        const value = this.attributes[attr];
-        // a null value means the attribute is an implicit attribute
-        if ( value === null ) {
-          content += ` ${attr}`;
-        }
-        else {
-          content += ` ${attr}="${value}"`;
-        }
-      }
-      content += '>';
-      content += this.stringifyChildren();
-      content += `</${this.tagName}>`;
+      closingContent += '>';
+      closingContent += this.stringifyChildren();
+      closingContent += `</${this.tagName}>`;
     }
     else if ( this.mode === 'void' ) {
-      content = `<${this.tagName}`;
-      const attributes = Object.keys(this.attributes);
-      for ( let i = 0; i < attributes.length; ++i ) {
-        const attr = attributes[i];
-        content += ` ${attr}="${this.attributes[attr]}"`;
-      }
-      content += ' />';
+      closingContent += ' />';
     }
     else {
-      content = this.content || '';
+      return (this.document.trimWhitespace) ? this.trim(this.content) : this.content;
     }
+    
+    // Append opening tag
+    let content = `<${this.tagName}`;
+    const attributes = Object.keys(this.attributes);
+    for ( let i = 0; i < attributes.length; ++i ) {
+      const attr = attributes[i];
+      const value = this.attributes[attr];
+      // a null value means the attribute is an implicit attribute
+      if ( value === null ) {
+        content += ` ${attr}`;
+      }
+      else {
+        content += ` ${attr}="${value}"`;
+      }
+    }
+    content += closingContent;
     return (this.document.trimWhitespace) ? this.trim(content) : content;
   }
   
