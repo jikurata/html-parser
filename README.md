@@ -1,4 +1,4 @@
-# html-parser v0.0.5
+# html-parser v0.0.6
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -123,6 +123,9 @@ constructor(options)
 
 ## Version Log
 ---
+**v0.0.6**
+- Fixed a bug that prevented void elements from parsing null attributes into implicit attributes
+
 **v0.0.5**
 - Attributes with a null value are parsed as implicit attributes
 
