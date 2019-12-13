@@ -1,5 +1,7 @@
 'use strict';
 const ParsedElement = require('./ParsedElement.js');
+const parse = require('../Parser.js');
+const config = require('../Config.js');
 
 class ParsedHTMLElement extends ParsedElement {
   constructor(document, id, param = {}) {
@@ -10,12 +12,7 @@ class ParsedHTMLElement extends ParsedElement {
       writable: false,
       configurable: false
     });
-
     this.set('content', this.stringify(), false);
-  }
-
-  parse(content) {
-    return this.document.parse(content);
   }
 
   stringify() {
@@ -29,7 +26,7 @@ class ParsedHTMLElement extends ParsedElement {
       closingContent += ' />';
     }
     else {
-      return (this.document.trimWhitespace) ? this.trim(this.content) : this.content;
+      return (config.trimWhitespace) ? this.trim(this.content) : this.content;
     }
     
     // Append opening tag
@@ -47,7 +44,7 @@ class ParsedHTMLElement extends ParsedElement {
       }
     }
     content += closingContent;
-    return (this.document.trimWhitespace) ? this.trim(content) : content;
+    return (config.trimWhitespace) ? this.trim(content) : content;
   }
   
   stringifyChildren() {
@@ -59,26 +56,26 @@ class ParsedHTMLElement extends ParsedElement {
         content += child.stringify();
       }
     }
-    return (this.document.trimWhitespace) ? this.trim(content) : content;
+    return (config.trimWhitespace) ? this.trim(content) : content;
   }
 
   get textContent() {
     if ( this.mode === 'closed') {
-      const opentag = this.document.findTagPosition(this.content);
+      const opentag = parse.findTagPosition(this.content);
       let closedtag = null;
       let position = opentag;
       while ( position ) {
-        position = this.document.findTagPosition(this.content, position[1]);
+        position = parse.findTagPosition(this.content, position[1]);
         if ( position ) {
           closedtag = position;
         }
       }
       if ( closedtag ) {
         const content = this.content.substring(opentag[1], closedtag[0]);
-        return (this.document.trimWhitespace) ? this.trim(content) : content;
+        return (config.trimWhitespace) ? this.trim(content) : content;
       }
     }
-    return (this.document.trimWhitespace) ? this.trim(this.content) : this.content;
+    return (config.trimWhitespace) ? this.trim(this.content) : this.content;
   }
 
   get innerHTML() {
@@ -90,7 +87,7 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set textContent(content) {
-    if ( this.document.trimWhitespace ) {
+    if ( config.trimWhitespace ) {
       content = this.trim(content);
     }
     if ( this.mode === 'closed' ) {
@@ -104,11 +101,11 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set innerHTML(content) {
-    if ( this.document.trimWhitespace ) {
+    if ( config.trimWhitespace ) {
       content = this.trim(content);
     }
     if ( this.mode === 'closed' ) {
-      const partial = this.parse(content);
+      const partial = parse(content);
       const list = [];
       for ( let i = 0; i < partial.fragment.children.length; ++i ) {
         const element = partial.fragment.children[i];
@@ -122,12 +119,12 @@ class ParsedHTMLElement extends ParsedElement {
   }
 
   set outerHTML(content) {
-    if ( this.document.trimWhitespace ) {
+    if ( config.trimWhitespace ) {
       content = this.trim(content);
     }
     // Overwrite the children of this element's parent
     if ( this.parent ) {
-      const doc = this.parse(content);
+      const doc = parse(content);
       this.parent.replaceChild(this, doc.fragment.children);
     }
   }

@@ -10,6 +10,12 @@ class ParsedElement extends EmittableMap {
       writable: false,
       configurable: false
     });
+    Object.defineProperty(this, 'elementMap', {
+      value: {},
+      enumerable: true,
+      writable: false,
+      configurable: false
+    });
 
     this.setAll({
       'tagName': param.tagName || null,
@@ -18,7 +24,6 @@ class ParsedElement extends EmittableMap {
       'attributes': param.attributes || {},
       'content': param.content || '',
       'parent': param.parent || null,
-      'children': param.children || []
     }, false);
     this.setAll(param, false);
 
@@ -234,6 +239,10 @@ class ParsedElement extends EmittableMap {
         this.emit('change', attr, value, oldValue);
       }
     }
+  }
+
+  get children() {
+    return Object.values(this.elementMap);
   }
 
   get id() {

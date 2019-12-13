@@ -8,6 +8,7 @@
     "test:map": "node ./_test/emittable-map.test.js",
     "test:element": "node ./_test/parsed-element.test.js",
     "test:document": "node ./_test/document.test.js",
+    "test:parser": "node ./_test/parser.test.js",
     "test": "node ./_test/test.js"
   },
   "keywords": [
