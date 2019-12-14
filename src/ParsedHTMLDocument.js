@@ -9,7 +9,7 @@ class ParsedHTMLDocument extends ParsedElement {
     super('document', {
       nodeType: 'document'
     });
-    Object.defineProperty(this, 'fragment', {
+    Object.defineProperty(this, 'root', {
       value: new ParsedFragmentElement(this.getNextId()),
       enumerable: true,
       writable: false,
@@ -17,7 +17,7 @@ class ParsedHTMLDocument extends ParsedElement {
     });
     
     // When an element updates, check for new elements to add to the document
-    this.fragment.on('propagate-update', (id) => {
+    this.root.on('propagate-update', (id) => {
       const descendants = this.getDescendants();
       const ids = this.getChildrenRefIds();
       // add any new elements to the document's children
@@ -99,15 +99,15 @@ class ParsedHTMLDocument extends ParsedElement {
   }
 
   appendChild(element) {
-    this.fragment.appendChild(element);
+    this.root.appendChild(element);
   }
 
   prependChild(element) {
-    this.fragment.prependChild(element);
+    this.root.prependChild(element);
   }
 
   replaceChild(child, elements) {
-    this.fragment.replaceChild(child, elements);
+    this.root.replaceChild(child, elements);
   }
 
   /**
@@ -125,7 +125,7 @@ class ParsedHTMLDocument extends ParsedElement {
         ids.push(elements[i].referenceId);
       }
 
-      const descendants = this.fragment.getDescendants();
+      const descendants = this.root.getDescendants();
       for ( let j = 0; j < descendants.length; ++j ) {
         const descendant = descendants[j];
 
@@ -174,7 +174,7 @@ class ParsedHTMLDocument extends ParsedElement {
   }
 
   stringify() {
-    let content = this.fragment.stringify();
+    let content = this.root.stringify();
     if ( this.trimWhitespace ) {
       content = this.trim(content);
     }

@@ -1,20 +1,16 @@
 'use strict';
 const Taste = require('@jikurata/taste');
 const ParsedElement = require('../src/element/ParsedElement.js');
-const ParsedHTMLElement = require('../src/element/ParsedHTMLElement.js');
 
 Taste('ParsedElement properties')
 .test(profile => {
   profile.element = new ParsedElement(0);
 })
-.expect('element').toHaveProperty('referenceId')
 .expect('element').toHaveProperty('attributes')
 .expect('element').toHaveProperty('tagName')
 .expect('element').toHaveProperty('nodeType')
 .expect('element').toHaveProperty('mode')
-.expect('element').toHaveProperty('content')
-.expect('element').toHaveProperty('parent')
-.expect('element').toHaveProperty('children');
+.expect('element').toHaveProperty('content');
 
 Taste('Get/Set Attributes')
 .test(profile => {
@@ -43,8 +39,8 @@ Taste('getElementsByTagName')
   parent.children.push(child1, child2);
   const found = parent.getElementsByTagName('div');
   profile.count = found.length;
-  profile.foundChild1 = found[0].referenceId;
-  profile.foundChild2 = found[1].referenceId;
+  profile.foundChild1 = found[0]._id;
+  profile.foundChild2 = found[1]._id;
 })
 .expect('count').toEqual(2)
 .expect('foundChild1').toEqual(1)
@@ -59,24 +55,11 @@ Taste('getElementsByClassName')
   parent.children.push(child1, child2, child3);
   const found = parent.getElementsByClassName('foo');
   profile.count = found.length;
-  profile.foundChild1 = found[0].referenceId;
-  profile.foundChild2 = found[1].referenceId;
+  profile.foundChild1 = found[0]._id;
+  profile.foundChild2 = found[1]._id;
 })
 .expect('count').toEqual(2)
 .expect('foundChild1').toEqual(1)
 .expect('foundChild2').toEqual(2);
-
-Taste('Replace a child with another element')
-.test(profile => {
-  const parent = new ParsedElement(0);
-  const child1 = new ParsedElement(1);
-  const child2 = new ParsedElement(2);
-  parent.children.push(child1);
-  parent.replaceChild(child1, child2);
-  profile.replacement = parent.children[0];
-  profile.ref = profile.replacement.referenceId;
-})
-.expect('replacement').toBeInstanceOf(ParsedElement)
-.expect('ref').toEqual(2);
 
 module.exports = Taste;

@@ -1,49 +1,42 @@
 'use strict';
-const EmittableMap = require('../EmittableMap.js');
+const ParsedNode = require('../ParsedNode.js');
+const config = require('../Config.js');
 
-class ParsedElement extends EmittableMap {
+class ParsedElement extends ParsedNode {
   constructor(id, param = {}) {
-    super();
-    Object.defineProperty(this, 'referenceId', {
-      value: id,
-      enumerable: true,
-      writable: false,
-      configurable: false
-    });
-    Object.defineProperty(this, 'elementMap', {
-      value: {},
-      enumerable: true,
-      writable: false,
-      configurable: false
-    });
-
-    this.setAll({
-      'tagName': param.tagName || null,
-      'nodeType': param.nodeType || 'element',
-      'mode': param.mode || null,
-      'attributes': param.attributes || {},
-      'content': param.content || '',
-      'parent': param.parent || null,
+    super(id);
+    this._setAll({
+      'tagName': null,
+      'nodeType': 'element',
+      'mode': null,
+      'attributes': {},
+      'content': ''
     }, false);
-    this.setAll(param, false);
+    this._setAll(param, false);
 
     // Emit update event when the element's model mutates
-    this.on('change', (property, value, oldValue) => {
-      this.emit('propagate-update', this.referenceId);
+    this.on('content', () => {
+      this.emit('propagate-update');
     });
 
     // Pass an update event to a parent element
-    this.on('propagate-update', (referenceId) => {
-      this.set('content', this.stringify(), false);
+    this.on('propagate-update', (id) => {
+      this._set('content', this.stringify(), false);
       if ( this.parent ) {
-        this.parent.emit('propagate-update', referenceId)
+        this.parent.emit('propagate-update');
       }
     });
   }
 
+  /**
+   * Find an element with the attribute id
+   * @param {String} id
+   * @returns {ParsedElement}
+   */
   getElementById(id) {
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const e = this.children[i];
+    const descendants = this.getDescendants();
+    for ( let i = 0; i < descendants.length; ++i ) {
+      const e = descendants[i];
       const attributeId = e.getAttribute('id');
       if ( attributeId === id ) {
         return e;
@@ -51,10 +44,16 @@ class ParsedElement extends EmittableMap {
     }
   }
 
+  /**
+   * Find all elements with the tag name
+   * @param {String} tag
+   * @returns {Array<ParsedElement>}
+   */
   getElementsByTagName(tag) {
+    const descendants = this.getDescendants();
     const list = [];
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const e = this.children[i];
+    for ( let i = 0; i < descendants.length; ++i ) {
+      const e = descendants[i];
       if ( tag === e.tagName ) {
         list.push(e);
       }
@@ -62,10 +61,16 @@ class ParsedElement extends EmittableMap {
     return list;
   }
 
+  /**
+   * Find all elements with the class name
+   * @param {String} className
+   * @returns {Array<ParsedElement>}
+   */
   getElementsByClassName(className) {
+    const descendants = this.getDescendants();
     const list = [];
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const e = this.children[i];
+    for ( let i = 0; i < descendants.length; ++i ) {
+      const e = descendants[i];
       if ( e.attributes.class ) {
         const classes = e.attributes.class.split(' ');
         for ( let j = 0; j < classes.length; ++j ) {
@@ -78,145 +83,48 @@ class ParsedElement extends EmittableMap {
     return list;
   }
 
-  appendChild(element) {
-    if ( !(element instanceof ParsedElement) ) {
-      throw new TypeError(`Expected argument to be instance of ParsedElement`);
+  stringify() {
+    let closingContent = ''
+    if ( this.mode === 'closed' ) {
+      closingContent += '>';
+      closingContent += this.stringifyChildren();
+      closingContent += `</${this.tagName}>`;
     }
-    element.set('parent', this, false);
-    this.children.push(element);
-    element.emit('propagate-update', element.referenceId);
-  }
-
-  prependChild(element) {
-    if ( !(element instanceof ParsedElement) ) {
-      throw new TypeError(`Expected argument to be instance of ParsedElement`);
+    else if ( this.mode === 'void' ) {
+      closingContent += ' />';
     }
-    this.children.push(element);
-    element.set('parent', this, false);
-    element.emit('propagate-update', element.referenceId);
-  }
-
-  /**
-   * Replace the child with the elements
-   * @param {ParsedElement} child 
-   * @param {ParsedElement|Array[ParsedElements]} elements
-   */
-  replaceChild(child, elements) {
-    if ( this.hasElement(child) ) {
-      if ( elements instanceof ParsedElement ) {
-        elements = [elements];
+    else {
+      return (config.trimWhitespace) ? this.trim(this.content) : this.content;
+    }
+    
+    // Append opening tag
+    let content = `<${this.tagName}`;
+    const attributes = Object.keys(this.attributes);
+    for ( let i = 0; i < attributes.length; ++i ) {
+      const attr = attributes[i];
+      const value = this.attributes[attr];
+      // a null value means the attribute is an implicit attribute
+      if ( value === null ) {
+        content += ` ${attr}`;
       }
+      else {
+        content += ` ${attr}="${value}"`;
+      }
+    }
+    content += closingContent;
+    return (config.trimWhitespace) ? this.trim(content) : content;
+  }
   
-      const ids = [];
-      const list = [];
-  
-      for ( let i = 0; i < elements.length; ++i ) {
-        ids.push(elements[i].referenceId);
-      }
-  
-      // Find child in parent's children
-      for ( let i = 0; i < this.children.length; ++i ) {
-        const element = this.children[i];
-        const id = element.referenceId;
-        // push the element back into the list if it does not match the original child or replacements
-        if ( id !== child.referenceId && ids.indexOf(id) === -1 ) {
-          list.push(element);
-        }
-        else {
-          // Replace this index with the elements
-          for ( let j = 0; j < elements.length; ++j ) {
-            elements[j].parent = this;
-            list.push(elements[j]);
-          }
-          child.parent = null;
-        }
-      }
-
-      this.children = list;
-    }
-  }
-
-  /**
-   * Remove this element from the document
-   */
-  remove() {
-    if ( this.parent ) {
-      this.parent.removeChildren([this]);
-    }
-  }
-
-  /**
-   * Removes any matching elements from children
-   * @param {ParsedElement|Array[ParsedElement]} children 
-   */
-  removeChildren(children = null) {
-    if ( children instanceof ParsedElement ) {
-      children = [children];
-    }
-    if ( Array.isArray(children) ) {
-      const ids = [];
-      for ( let i = 0; i < children.length; ++i ) {
-        ids.push(children[i].referenceId);
-      }
-
-      const list = [];
+  stringifyChildren() {
+    let content = '';
+    if ( this.mode === 'closed' ) {
+      // Append stringified child elements
       for ( let i = 0; i < this.children.length; ++i ) {
         const child = this.children[i];
-
-        // Keep children that do not have matching ids
-        if ( ids.indexOf(child.referenceId) === -1 ) {
-          list.push(child);
-        }
-      }
-      // Emits a change event
-      this.children = list;
-    }
-  }
-
-  getChildrenRefIds() {
-    const list = [];
-    for ( let i = 0; i < this.children.length; ++i ) {
-      list.push(this.children[i].referenceId);
-    }
-    return list;
-  }
-
-  /**
-   * Returns a list of all elements nested within this element
-   * @returns {Array[ParsedElement]}
-   */
-  getDescendants() {
-    const list = [];
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const child = this.children[i];
-      list.push(child);
-      if ( child.children.length ) {
-        const a = child.getDescendants();
-        list.push(...a);
+        content += child.stringify();
       }
     }
-    return list;
-  }
-
-  /**
-   * Checks if the element owns the child
-   * @param {ParsedElement} element 
-   * @returns {Boolean}
-   */
-  hasElement(element) {
-    const id = element.referenceId;
-    for ( let i = 0; i < this.children.length; ++i ) {
-      const child = this.children[i];
-      if ( id === child.referenceId ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  stringify() {
-    const content = this.content || '';
-    return this.trim(content);
+    return (config.trimWhitespace) ? this.trim(content) : content;
   }
 
   trim(content) {
@@ -231,18 +139,12 @@ class ParsedElement extends EmittableMap {
     return this.attributes[attr];
   }
 
-  setAttribute(attr, value, emit = true) {
+  setAttribute(attr, value) {
     if ( this.attributes[attr] !== value ) {
       const oldValue = this.attributes[attr];
       this.attributes[attr] = value;
-      if ( emit ) {
-        this.emit('change', attr, value, oldValue);
-      }
+      this.emit(attr, value, oldValue);
     }
-  }
-
-  get children() {
-    return Object.values(this.elementMap);
   }
 
   get id() {
@@ -259,6 +161,10 @@ class ParsedElement extends EmittableMap {
 
   set className(className) {
     this.setAttribute('class', className);
+  }
+
+  get classList() {
+    return this.className.split(' ');
   }
 }
 

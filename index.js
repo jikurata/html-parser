@@ -1,7 +1,7 @@
 'use strict';
-const Parser = require('./src/Parser.js');
+const parse = require('./src/Parser.js');
+const config = require('./src/Config.js');
 
-const parser = new Parser();
 
-module.exports = parser.parse;
-module.exports.config = parser.config;
+module.exports = parse;
+module.exports.config = config;

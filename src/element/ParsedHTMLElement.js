@@ -15,50 +15,6 @@ class ParsedHTMLElement extends ParsedElement {
     this.set('content', this.stringify(), false);
   }
 
-  stringify() {
-    let closingContent = ''
-    if ( this.mode === 'closed' ) {
-      closingContent += '>';
-      closingContent += this.stringifyChildren();
-      closingContent += `</${this.tagName}>`;
-    }
-    else if ( this.mode === 'void' ) {
-      closingContent += ' />';
-    }
-    else {
-      return (config.trimWhitespace) ? this.trim(this.content) : this.content;
-    }
-    
-    // Append opening tag
-    let content = `<${this.tagName}`;
-    const attributes = Object.keys(this.attributes);
-    for ( let i = 0; i < attributes.length; ++i ) {
-      const attr = attributes[i];
-      const value = this.attributes[attr];
-      // a null value means the attribute is an implicit attribute
-      if ( value === null ) {
-        content += ` ${attr}`;
-      }
-      else {
-        content += ` ${attr}="${value}"`;
-      }
-    }
-    content += closingContent;
-    return (config.trimWhitespace) ? this.trim(content) : content;
-  }
-  
-  stringifyChildren() {
-    let content = '';
-    if ( this.mode === 'closed' ) {
-      // Append stringified child elements
-      for ( let i = 0; i < this.children.length; ++i ) {
-        const child = this.children[i];
-        content += child.stringify();
-      }
-    }
-    return (config.trimWhitespace) ? this.trim(content) : content;
-  }
-
   get textContent() {
     if ( this.mode === 'closed') {
       const opentag = parse.findTagPosition(this.content);
