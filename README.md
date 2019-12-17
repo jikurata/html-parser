@@ -1,4 +1,4 @@
-# html-parser v0.0.7
+# html-parser v0.0.8
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -108,6 +108,9 @@ constructor(options)
 
 ## Version Log
 ---
+**v0.0.8**
+- Fixed a bug that only allowed retrieval of config, instead of modifying it through the export
+
 **v0.0.7**
 - Refactored ParsedHTMLDocument to ParsedFragmentElement
 - Refactored data structure behind the parser to utilize a tree instead of an array
