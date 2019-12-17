@@ -1,14 +1,14 @@
 'use strict';
 const Taste = require('@jikurata/taste');
-const Parser = require('../src/Parser.js');
-const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
+const parse = require('../src/Parser.js');
+const ParsedFragmentElement = require('../src/element/ParsedFragmentElement.js');
 const ParsedElement = require('../src/element/ParsedElement.js');
 
-const parser = new Parser();
 Taste('Creating ParsedElements')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const e = doc.createElement('div');
+  doc.appendChild(e);
   profile.element = e;
   profile.length = doc.children.length;
 })
@@ -17,13 +17,16 @@ Taste('Creating ParsedElements')
 
 Taste('Element retrieval')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const e = doc.createElement('div');
   e.id = 'test';
   e.className = 'a class name';
-  const e2 = doc.createElement('p')
+  const e2 = doc.createElement('p');
   e2.className = 'name';
   doc.createElement('div');
+
+  doc.appendChild(e);
+  doc.appendChild(e2);
 
   profile.findById = doc.getElementById('test');
   profile.findByClass = doc.getElementsByClassName('name').length;
@@ -31,14 +34,14 @@ Taste('Element retrieval')
 })
 .expect('findById').toBeInstanceOf(ParsedElement)
 .expect('findByClass').toEqual(2)
-.expect('findByTagName').toEqual(2);
+.expect('findByTagName').toEqual(1);
 
 Taste('Update event propagation')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const element = doc.createElement('div');
-  doc.fragment.appendChild(element);
-  doc.fragment.on('propagate-update', () => {
+  doc.appendChild(element);
+  doc.on('propagate-update', () => {
     profile.eventPropagation = true;
   });
   element.emit('propagate-update');
@@ -48,9 +51,9 @@ Taste('Update event propagation')
 Taste('Stringify ParsedElement')
 .test('Converts a ParsedElement into a string',
 profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const element = doc.createElement('input');
-  doc.fragment.appendChild(element);
+  doc.appendChild(element);
   element.setAttribute('type', 'text');
   profile.elementAsString = element.stringify();
 })
@@ -59,9 +62,9 @@ profile => {
 Taste('Stringify ParsedElement with innerHTML')
 .test('Converts a ParsedElement to a string',
 profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const element = doc.createElement('p');
-  doc.fragment.appendChild(element);
+  doc.appendChild(element);
   element.innerHTML = 'test';
   profile.elementAsString = element.stringify();
 })
@@ -70,9 +73,9 @@ profile => {
 Taste('Stringify ParsedElement with outerHTML')
 .test('Converts a ParsedElement to a string',
 profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const element = doc.createElement('p');
-  doc.fragment.appendChild(element);
+  doc.appendChild(element);
   element.outerHTML = '<div id="foo">hi</div>';
   profile.elementAsString = doc.stringify();
 })
@@ -85,7 +88,7 @@ profile => {
     <header></header>
     <section></section>
   `
-  const document = parser.parse(content);
+  const document = parse(content);
   const element = document.getElementsByTagName('section')[0];
   element.outerHTML = '<div id="foo">hi</div>';
   profile.elementAsString = document.stringify();
@@ -94,9 +97,9 @@ profile => {
 
 Taste('Stringify ParsedElement with textContent')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const element = doc.createElement('p');
-  doc.fragment.appendChild(element);
+  doc.appendChild(element);
   element.textContent = '<div>Tags ignored because this is just text</div><p>ignored</p>';
   profile.elementAsString = element.stringify();
   profile.childrenCount = element.children.length;
@@ -106,9 +109,9 @@ Taste('Stringify ParsedElement with textContent')
 
 Taste('Stringify ParsedElement with textContent')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
-  const text = doc.createTextElement('foo');
-  doc.fragment.appendChild(text);
+  const doc = new ParsedFragmentElement(parse);
+  const text = doc.createTextNode('foo');
+  doc.appendChild(text);
   text.textContent = 'bar';
   profile.elementAsString = text.stringify();
 })
@@ -125,7 +128,7 @@ Taste('Modify and Stringify a document')
           <div>Another div</div>
       </div>
   </section>`;
-  const document = parser.parse(html); 
+  const document = parse(html); 
   const sectionElement = document.getElementById('sampleDoc')
   const header = sectionElement.getElementsByClassName('text')[0]
 
@@ -138,7 +141,7 @@ Taste('Modify and Stringify a document')
 
 Taste('Child replacement')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const child = doc.createElement('p');
   const replacement = doc.createElement('span');
   doc.appendChild(child);
@@ -158,10 +161,10 @@ profile => {
       bar
     </div>
   `;
-  const doc = new ParsedHTMLDocument(parser);
+  const doc = new ParsedFragmentElement(parse);
   const child = doc.createElement('p');
-  const replacement = doc.parse(content).fragment.children;
-  doc.fragment.appendChild(child);
+  const replacement = parse(content).children;
+  doc.appendChild(child);
   doc.replaceChild(child, replacement);
   profile.replacedHTML = doc.stringify();
 })
@@ -169,14 +172,13 @@ profile => {
 
 Taste('Trim html of excess whitespaces')
 .test(profile => {
-  const doc = new ParsedHTMLDocument(parser);
   const html = `
       <section>
 
     foo
     bar
   </section>`;
-  const document = doc.parse(html);
+  const document = parse(html);
   profile.trimmedHtml = document.stringify();
 })
 .expect('trimmedHtml').toMatch(`<section>foo bar</section>`);

@@ -22,7 +22,7 @@ class ParsedNode extends EmittableMap {
    */
   appendChild(node) {
     if ( node instanceof ParsedNode ) {
-      const list = this.children;
+      const list = [].concat(this.children);
       node._set('parent', this, false);
       list.push(node);
       this.children = list;
@@ -38,7 +38,7 @@ class ParsedNode extends EmittableMap {
    */
   prependChild(node) {
     if ( node instanceof ParsedNode ) {
-      const list = this.children;
+      const list = [].concat(this.children);
       node._set('parent', this, false);
       list.unshift(node);
       this.children = list;
@@ -51,24 +51,36 @@ class ParsedNode extends EmittableMap {
   /**
    * Replace the child with the nodes
    * @param {ParsedNode} child 
-   * @param {ParsedNode} node
+   * @param {ParsedNode|Array<ParsedNode>} nodes
    */
-  replaceChild(child, node) {
+  replaceChild(child, nodes) {
     if ( this.hasChild(child) ) {
-      const list = [];
+      if ( !Array.isArray(nodes) ) {
+        nodes = [nodes];
+      }
+      
+      // Get ids of all the replacement nodes
+      const ids = [];
+      for ( let i = 0; i < nodes.length; ++i ) {
+        ids.push(nodes[i]._id);
+      }
 
+      const list = [];
       // Find child in parent's children
       for ( let i = 0; i < this.children.length; ++i ) {
         const current = this.children[i];
 
-        // push the node back into the list if it does not match the original child or replacement
-        if ( current._id !== child._id && current._id !== node._id ) {
+        // push the node back into the list if it does not match the original child or replacements
+        if ( current._id !== child._id && ids.indexOf(current._id) === -1 ) {
           list.push(current);
         }
         else {
-          // Replace the node at the current index with the replacement node
-          node.parent = this;
-          list.push(node);
+          for ( let j = 0; j < nodes.length; ++j ) {
+            const node = nodes[j];
+            // Replace the node at the current index with the replacement node
+            node._set('parent', this, false);
+            list.push(node);
+          }
           child.parent = null;
         }
       }

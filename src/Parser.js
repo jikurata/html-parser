@@ -1,17 +1,17 @@
 'use strict';
-const ParsedHTMLDocument = require('./ParsedHTMLDocument.js');
 const config = require('./Config.js');
+const ParsedFragmentElement = require('./element/ParsedFragmentElement.js');
 
 /**
  * Parses a string into a ParsedHTMLDocument
  * @param {String} content
- * @returns {ParsedHTMLDocument}
+ * @returns {ParsedFragmentElement}
  */
 function parse(content) {
-  const document = new ParsedHTMLDocument();
+  const document = new ParsedFragmentElement(parse);
   const length = content.length;
   const stack = [];
-  let currentElement = document.fragment;
+  let currentElement = document;
 
   let i = 0;
   while ( i < length ) {
@@ -20,7 +20,7 @@ function parse(content) {
       // Check if there are characters between the i position and start position
       if ( i !== pos[0] ) {
         // Create a string element representing the untagged characters
-        const element = document.createTextElement({
+        const element = document.createTextNode({
           'content': content.substring(i, pos[0]),
           'parent': currentElement
         });
@@ -76,7 +76,7 @@ function parse(content) {
     }
     else {
       // If no new tag can be found, assume the rest of the content is a string
-      const element = document.createTextElement({
+      const element = document.createTextNode({
         'content': content.substring(i, length),
         'parent': currentElement
       });
@@ -217,4 +217,3 @@ function mapAttributes(content) {
 }
 
 module.exports = parse;
-module.exports.findTagPosition = findTagPosition;

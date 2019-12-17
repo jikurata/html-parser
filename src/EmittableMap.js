@@ -31,7 +31,7 @@ class EmittableMap extends EventEmitter {
     // Create getter and setter in the EmittableMap instance for the property
     if ( !this._map.hasOwnProperty(property) ) {
       Object.defineProperty(this, property, {
-        enumerable: true,
+        enumerable: false,
         get: () => { return this._get(property); },
         set: (v) => { this._set(property, v); }
       });
@@ -42,7 +42,7 @@ class EmittableMap extends EventEmitter {
       const oldValue = this._map[property];
       this._map[property] = value;
       if ( emit ) {
-        this.emit(property, value, oldValue);
+        this.emit('property-change', property, value, oldValue);
       }
     }
   }

@@ -6,22 +6,27 @@ class ParsedElement extends ParsedNode {
   constructor(id, param = {}) {
     super(id);
     this._setAll({
-      'tagName': null,
-      'nodeType': 'element',
-      'mode': null,
-      'attributes': {},
-      'content': ''
+      'tagName': param.tagName || null,
+      'nodeType': param.element || 'element',
+      'mode': param.mode || null,
+      'attributes': param.attributes || {},
+      'content': param.content || ''
     }, false);
-    this._setAll(param, false);
 
     // Emit update event when the element's model mutates
-    this.on('content', () => {
+    this.on('property-change', (p, v) => {
+      if ( p === 'parent' && v instanceof ParsedNode ) {
+        if ( !v.hasChild(this) ) {
+          v.appendChild(this);
+        }
+      }
       this.emit('propagate-update');
     });
 
     // Pass an update event to a parent element
-    this.on('propagate-update', (id) => {
+    this.on('propagate-update', () => {
       this._set('content', this.stringify(), false);
+
       if ( this.parent ) {
         this.parent.emit('propagate-update');
       }
@@ -73,10 +78,8 @@ class ParsedElement extends ParsedNode {
       const e = descendants[i];
       if ( e.attributes.class ) {
         const classes = e.attributes.class.split(' ');
-        for ( let j = 0; j < classes.length; ++j ) {
-          if ( className === classes[j] ) {
-            list.push(e);
-          }
+        if ( classes.indexOf(className) > -1 ) {
+          list.push(e);
         }
       }
     }
@@ -121,7 +124,7 @@ class ParsedElement extends ParsedNode {
       // Append stringified child elements
       for ( let i = 0; i < this.children.length; ++i ) {
         const child = this.children[i];
-        content += child.stringify();
+        content += child.content;
       }
     }
     return (config.trimWhitespace) ? this.trim(content) : content;
@@ -143,7 +146,13 @@ class ParsedElement extends ParsedNode {
     if ( this.attributes[attr] !== value ) {
       const oldValue = this.attributes[attr];
       this.attributes[attr] = value;
-      this.emit(attr, value, oldValue);
+
+      // Emit the attriute pair as a property-change event
+      const pair = {};
+      const oldPair = {};
+      pair[attr] = value;
+      oldPair[attr] = oldValue;
+      this.emit('property-change', 'attributes', pair, oldPair);
     }
   }
 

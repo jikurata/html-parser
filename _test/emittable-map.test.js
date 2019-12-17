@@ -5,7 +5,7 @@ const EmittableMap = require('../src/EmittableMap.js');
 Taste('Creating a key-value pair')
 .test(profile => {
   const map = new EmittableMap();
-  map.set('foo', 'bar');
+  map._set('foo', 'bar');
   profile.fooValue = map.foo;
 })
 .expect('fooValue').toEqual('bar');
@@ -13,7 +13,7 @@ Taste('Creating a key-value pair')
 Taste('Changing a key-value pair')
 .test(profile => {
   const map = new EmittableMap();
-  map.set('foo', 'bar');
+  map._set('foo', 'bar');
   map.foo = 'baz';
   profile.changedValue = map.foo;
 })
@@ -22,7 +22,7 @@ Taste('Changing a key-value pair')
 Taste('Change event')
 .test(profile => {
   const map = new EmittableMap();
-  map.on('change', (k, v) => {
+  map.on('property-change', (k, v) => {
     switch(k) {
       case 'foo': 
         if ( v === 'bar' ) {
@@ -31,7 +31,7 @@ Taste('Change event')
       default: return;
     }
   });
-  map.set('foo', 'bar');
+  map._set('foo', 'bar');
 })
 .expect('emitChange').toBeTruthy();
 

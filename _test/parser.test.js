@@ -1,13 +1,11 @@
 'use strict';
 const Taste = require('@jikurata/taste');
-const Parser = require('../src/Parser.js');
-const ParsedHTMLDocument = require('../src/ParsedHTMLDocument.js');
 const ParsedElement = require('../src/element/ParsedElement.js');
+const parse = require('../index.js');
 
 Taste('implicit attributes get parsed with the value of null')
 .test(profile => {
-  const parser = new Parser();
-  const doc = parser.parse('<div implicit></div>');
+  const doc = parse('<div implicit></div>');
   const el = doc.getElementsByTagName('div')[0];
   profile.value = el.getAttribute('implicit');
 })
@@ -15,13 +13,12 @@ Taste('implicit attributes get parsed with the value of null')
 
 Taste('Parses void elements')
 .test(profile => {
-  const parser = new Parser();
   const content = `
     <section id="closed">This is in a closed tag</section>
     <input id="void" value="this is a void tag">
     <img id="voidWithClosed" src="" />
   `;
-  const document = parser.parse(content);
+  const document = parse(content);
   profile.void = document.getElementById('void');
   profile.voidWithClosed = document.getElementById('voidWithClosed');
 })
@@ -30,7 +27,6 @@ Taste('Parses void elements')
 
 Taste('Nested Elements')
 .test(profile => {
-  const parser = new Parser();
   const content = `
     <section id="root">
       this is a nested text node
@@ -41,7 +37,7 @@ Taste('Nested Elements')
       </div>
     </section>
   `;
-  const document = parser.parse(content);
+  const document = parse(content);
   profile.rootHasUniqueParagraph = document.getElementById('uniqueParagraph');
   profile.level1HasLevel2 = document.getElementById('level2');
 })
@@ -50,7 +46,6 @@ Taste('Nested Elements')
 
 Taste('Parsing a full document')
 .test(profile => {
-  const parser = new Parser();
   const content = `
     <!DOCTYPE html>
     <head>
@@ -62,7 +57,7 @@ Taste('Parsing a full document')
       <div></div>
     </body>
   `;
-  const document = parser.parse(content);
+  const document = parse(content);
   profile.doctype = document.getElementsByTagName('!DOCTYPE').length;
   profile.head = document.getElementsByTagName('head').length;
   profile.title = document.getElementsByTagName('title').length;
