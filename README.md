@@ -1,4 +1,4 @@
-# html-parser v0.0.6
+# html-parser v0.0.7
 Synchronously parse html into a HTML Document object
 ---
 ## Install
@@ -80,23 +80,6 @@ constructor(options)
 - getDescendants()
 - stringify()
 
-### class **ParsedHTMLDocument** extends ParsedElement
-constructor(options)
-- options {ConfigOptions}
-#### Properties
-- fragment {ParsedFragmentElement}
-#### Methods
-- config(options)
-    - options {ConfigOptions}
-- createElement(options)
-    - options {ParsedElementOptions}
-- createTextElement(text)
-    - text {String}
-- deleteElement(elements)
-    - elements {ParsedElement|Array[ParsedElement]}
-- parse(content)
-    - content {String}
-
 ### class **ParsedHTMLElement** extends ParsedElement
 constructor(options)
 - options {ParsedElementOptions}
@@ -121,8 +104,14 @@ constructor(options)
 - parent: {ParsedElement},
 - children: {Array[ParsedElement]}
 
+### class **ParsedFragmentElement** extends ParsedHTMLElement
+
 ## Version Log
 ---
+**v0.0.7**
+- Refactored ParsedHTMLDocument to ParsedFragmentElement
+- Refactored data structure behind the parser to utilize a tree instead of an array
+
 **v0.0.6**
 - Fixed a bug that prevented void elements from parsing null attributes into implicit attributes
 

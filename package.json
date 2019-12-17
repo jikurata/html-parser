@@ -1,6 +1,6 @@
 {
   "name": "@jikurata/html-parser",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Parse html into a HTMLDocument",
   "repository": "https://github.com/jikurata/html-parser",
   "main": "index.js",
